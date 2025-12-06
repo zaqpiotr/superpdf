@@ -1,57 +1,87 @@
 plugins {
-	id 'java-library'
-	id 'groovy'
-	id 'maven-publish'
+    id 'java-library'
+    id 'groovy'
+    id 'maven-publish'
+    id 'signing'
+    id 'com.vanniktech.maven.publish' version '0.28.0'
 }
 
 wrapper {
-	gradleVersion = '8.10.2'
+    gradleVersion = '8.10.2'
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_23
-	targetCompatibility = JavaVersion.VERSION_23
+    sourceCompatibility = JavaVersion.VERSION_23
+    targetCompatibility = JavaVersion.VERSION_23
+    withJavadocJar()
+    withSourcesJar()
 }
 
 /*
  * Gets the version name from the latest Git tag
  */
+
 def getVersionName() {
-	def proc = ['git', 'describe', '--tags'].execute()
-	proc.waitFor()
-	return proc.text.trim()
+    def proc = ['git', 'describe', '--tags'].execute()
+    proc.waitFor()
+    def result = proc.text.trim()
+    // Remove 'v' prefix if present
+    return result.startsWith('v') ? result.substring(1) : result
 }
+
 version = getVersionName()
 group = 'io.github.zaqpiotr'
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	api 'org.apache.pdfbox:pdfbox:3.0.6'
-	implementation 'org.slf4j:slf4j-api:1.7.36'
-	implementation 'org.apache.commons:commons-csv:1.9.0'
-	implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
+    api 'org.apache.pdfbox:pdfbox:3.0.6'
+    implementation 'org.slf4j:slf4j-api:1.7.36'
+    implementation 'org.apache.commons:commons-csv:1.9.0'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
 
-	// Spock Framework with Groovy 5 for Java 23 support
-	testImplementation 'org.spockframework:spock-core:2.4-M7-groovy-5.0'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Spock Framework with Groovy 5 for Java 23 support
+    testImplementation 'org.spockframework:spock-core:2.4-M7-groovy-5.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-	testImplementation 'commons-io:commons-io:2.11.0'
+    testImplementation 'commons-io:commons-io:2.11.0'
 }
 
 test {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }
 
-publishing {
-	publications {
-		maven(MavenPublication) {
-			from components.java
-			groupId = 'io.github.zaqpiotr'
-			artifactId = 'superpdf'
-			version = '1.0.1'
-		}
-	}
+mavenPublishing {
+    publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+    signAllPublications()
+
+    pom {
+        name = 'SuperPDF'
+        description = 'A Java library to build tables in PDF documents'
+        url = 'https://github.com/zaqpiotr/superpdf'
+        inceptionYear = '2025'
+
+        licenses {
+            license {
+                name = 'Apache License, Version 2.0'
+                url = 'https://www.apache.org/licenses/LICENSE-2.0'
+            }
+        }
+
+        developers {
+            developer {
+                id = 'zaqpiotr'
+                name = 'Piotr'
+                url = 'https://github.com/zaqpiotr'
+            }
+        }
+
+        scm {
+            url = 'https://github.com/zaqpiotr/superpdf'
+            connection = 'scm:git:git://github.com/zaqpiotr/superpdf.git'
+            developerConnection = 'scm:git:ssh://git@github.com/zaqpiotr/superpdf.git'
+        }
+    }
 }

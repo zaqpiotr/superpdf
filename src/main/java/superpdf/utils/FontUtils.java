@@ -184,4 +184,11 @@ public final class FontUtils {
 		defaultFonts.put("fontItalic", loadFont(document, "fonts/FreeSansOblique.ttf"));
 		defaultFonts.put("fontBoldItalic", loadFont(document, "fonts/FreeSansBoldOblique.ttf"));
 	}
+
+	public static void setLatoFontsAsDefault(PDDocument document) {
+		defaultFonts.put("font", loadFont(document, "fonts/Lato-Regular.ttf"));
+		defaultFonts.put("fontBold", loadFont(document, "fonts/Lato-Bold.ttf"));
+		defaultFonts.put("fontItalic", loadFont(document, "fonts/Lato-Italic.ttf"));
+		defaultFonts.put("fontBoldItalic", loadFont(document, "fonts/Lato-BoldItalic.ttf"));
+	}
 }

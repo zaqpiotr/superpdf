@@ -1,6 +1,7 @@
 plugins {
 	id 'java'
 	id 'groovy'
+	id 'maven-publish'
 }
 
 wrapper {
@@ -42,4 +43,15 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+}
+
+publishing {
+	publications {
+		maven(MavenPublication) {
+			from components.java
+			groupId = 'io.github.zaqpiotr'
+			artifactId = 'superpdf'
+			version = '1.0.0'
+		}
+	}
 }

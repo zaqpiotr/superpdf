@@ -1,0 +1,57 @@
+@options
+@packages
+-classpath
+'/Users/piotrzak/.m2/repository/org/apache/pdfbox/pdfbox/3.0.6/pdfbox-3.0.6.jar:/Users/piotrzak/.m2/repository/org/apache/pdfbox/pdfbox-io/3.0.6/pdfbox-io-3.0.6.jar:/Users/piotrzak/.m2/repository/org/apache/pdfbox/fontbox/3.0.6/fontbox-3.0.6.jar:/Users/piotrzak/.m2/repository/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar:/Users/piotrzak/.m2/repository/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar:/Users/piotrzak/.m2/repository/org/apache/commons/commons-csv/1.9.0/commons-csv-1.9.0.jar:/Users/piotrzak/.m2/repository/org/jsoup/jsoup/1.15.3/jsoup-1.15.3.jar'
+-encoding
+'UTF-8'
+-protected
+-source
+'23'
+-sourcepath
+'/Users/piotrzak/projects/superpdf/src/main/java:/Users/piotrzak/projects/superpdf/target/generated-sources/annotations'
+-author
+-bottom
+'Copyright &#169; 2025. All rights reserved.'
+-charset
+'UTF-8'
+-d
+'/Users/piotrzak/projects/superpdf/target/apidocs'
+-docencoding
+'UTF-8'
+-doctitle
+'SuperPDF 1.0.0 API'
+-use
+-version
+-windowtitle
+'SuperPDF 1.0.0 API'
+superpdf
+superpdf.page
+superpdf.utils
+superpdf.image
+superpdf.line
+superpdf.text
+superpdf.datatable
+/Users/piotrzak/.m2/repository/org/apache/pdfbox/pdfbox/3.0.6/pdfbox-3.0.6.jar = 1760369698000
+/Users/piotrzak/.m2/repository/org/apache/pdfbox/pdfbox-io/3.0.6/pdfbox-io-3.0.6.jar = 1760369666000
+/Users/piotrzak/.m2/repository/org/apache/pdfbox/fontbox/3.0.6/fontbox-3.0.6.jar = 1760369672000
+/Users/piotrzak/.m2/repository/commons-logging/commons-logging/1.3.5/commons-logging-1.3.5.jar = 1738337232000
+/Users/piotrzak/.m2/repository/org/slf4j/slf4j-api/1.7.36/slf4j-api-1.7.36.jar = 1644327230000
+/Users/piotrzak/.m2/repository/org/apache/commons/commons-csv/1.9.0/commons-csv-1.9.0.jar = 1627141311000
+/Users/piotrzak/.m2/repository/org/jsoup/jsoup/1.15.3/jsoup-1.15.3.jar = 1661300039000
+/Users/piotrzak/projects/superpdf/src/main/java = 1765035169090
+/Users/piotrzak/projects/superpdf/target/generated-sources/annotations = 1765037641490
+/Users/piotrzak/projects/superpdf/target/apidocs/tag-search-index.js = 1765037643544
+/Users/piotrzak/projects/superpdf/target/apidocs/overview-tree.html = 1765037643530
+/Users/piotrzak/projects/superpdf/target/apidocs/module-search-index.js = 1765037643544
+/Users/piotrzak/projects/superpdf/target/apidocs/index.html = 1765037643533
+/Users/piotrzak/projects/superpdf/target/apidocs/package-search-index.js = 1765037643544
+/Users/piotrzak/projects/superpdf/target/apidocs/index-all.html = 1765037643559
+/Users/piotrzak/projects/superpdf/target/apidocs/allpackages-index.html = 1765037643543
+/Users/piotrzak/projects/superpdf/target/apidocs/deprecated-list.html = 1765037643532
+/Users/piotrzak/projects/superpdf/target/apidocs/member-search-index.js = 1765037643544
+/Users/piotrzak/projects/superpdf/target/apidocs/overview-summary.html = 1765037643560
+/Users/piotrzak/projects/superpdf/target/apidocs/help-doc.html = 1765037643561
+/Users/piotrzak/projects/superpdf/target/apidocs/element-list = 1765037643482
+/Users/piotrzak/projects/superpdf/target/apidocs/search.html = 1765037643560
+/Users/piotrzak/projects/superpdf/target/apidocs/allclasses-index.html = 1765037643542
+/Users/piotrzak/projects/superpdf/target/apidocs/type-search-index.js = 1765037643544

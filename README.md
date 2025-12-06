@@ -1,82 +1,233 @@
 # SuperPDF
 
-A Java library to build tables in PDF documents.
+A Java library to build tables in PDF documents using Apache PDFBox.
 
-SuperPDF is a library that can be used to easily create tables in PDF documents. It uses the [PDFBox](https://pdfbox.apache.org/) PDF library under the hood.
+## Installation
+
+### Maven Central (after sync)
+```xml
+<dependency>
+    <groupId>io.github.zaqpiotr</groupId>
+    <artifactId>superpdf</artifactId>
+    <version>1.0.0</version>
+</dependency>
+```
+
+### Gradle
+```groovy
+implementation 'io.github.zaqpiotr:superpdf:1.0.0'
+```
 
 ## Features
 
 - Build tables in PDF documents
-- Convert CSV data into tables in PDF documents
-- Convert Lists into tables in PDF documents
+- Convert CSV data into tables
+- Convert Lists into tables
+- HTML tags support in cells (`<b>`, `<i>`, `<br>`, `<ul>`, `<ol>`, `<li>`)
+- Horizontal & Vertical alignment
+- Images inside cells
+- Line styles (solid, dashed, dotted)
+- Custom fonts support
+- Rotated text (90 degrees)
 
-### SuperPDF supports these table features
-- HTML tags in cell content (not all! `<p>,<i>,<b>,<br>,<ul>,<ol>,<li>`)
-- Horizontal & Vertical Alignment of the text
-- Images inside cells and outside table (image scale is also supported)
-- Basic set of rendering attributes for lines (borders)
-- Rotated text (by 90 degrees)
-- Writing text outside tables
+## Quick Start
 
-## Usage examples
-
-### Create a PDF from a CSV file
+### Creating a Simple Table
 
 ```java
-String data = readData("data.csv");
+import superpdf.BaseTable;
+import superpdf.Cell;
+import superpdf.Row;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+
+PDDocument document = new PDDocument();
+PDPage page = new PDPage();
+document.addPage(page);
+
+float margin = 50;
+float yStart = page.getMediaBox().getHeight() - margin;
+float tableWidth = page.getMediaBox().getWidth() - (2 * margin);
+
+BaseTable table = new BaseTable(yStart, yStart, margin, tableWidth, margin, document, page, true, true);
+
+// Create header row
+Row<PDPage> headerRow = table.createRow(15f);
+Cell<PDPage> cell = headerRow.createCell(100, "Header Title");
+cell.setFontSize(12);
+table.addHeaderRow(headerRow);
+
+// Create data rows
+Row<PDPage> row = table.createRow(10f);
+row.createCell(50, "Column 1");
+row.createCell(50, "Column 2");
+
+table.draw();
+document.save("output.pdf");
+document.close();
+```
+
+### Cell Styling
+
+```java
+import superpdf.HorizontalAlignment;
+import superpdf.VerticalAlignment;
+import superpdf.line.LineStyle;
+import java.awt.Color;
+
+Row<PDPage> row = table.createRow(20f);
+Cell<PDPage> cell = row.createCell(100, "Styled Cell");
+
+// Font settings
+cell.setFont(font);
+cell.setFontSize(10);
+cell.setTextColor(Color.BLACK);
+
+// Alignment
+cell.setAlign(HorizontalAlignment.CENTER);
+cell.setValign(VerticalAlignment.MIDDLE);
+
+// Background
+cell.setFillColor(new Color(240, 240, 240));
+
+// Padding
+cell.setTopPadding(5f);
+cell.setBottomPadding(5f);
+cell.setLeftPadding(5f);
+cell.setRightPadding(5f);
+
+// Borders
+cell.setBorderStyle(new LineStyle(Color.BLACK, 1f));
+cell.setBottomBorderStyle(new LineStyle(Color.BLACK, 1f));
+cell.setTopBorderStyle(new LineStyle(Color.BLACK, 1f));
+```
+
+### Line Styles
+
+```java
+import superpdf.line.LineStyle;
+
+// Solid line
+LineStyle solid = new LineStyle(Color.BLACK, 1f);
+
+// Dashed line
+LineStyle dashed = LineStyle.produceDashed(Color.BLACK, 1);
+
+// Dotted line
+LineStyle dotted = LineStyle.produceDotted(Color.BLACK, 1);
+
+// Custom dash pattern
+LineStyle custom = LineStyle.produceDashed(Color.GRAY, 1, new float[]{3.0f, 2.0f}, 0.0f);
+
+cell.setBottomBorderStyle(dashed);
+```
+
+### Custom Fonts with HTML Support
+
+```java
+import static superpdf.utils.FontUtils.addDefaultFonts;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
+
+// Load custom fonts
+PDType0Font font = PDType0Font.load(document, new FileInputStream("fonts/Regular.ttf"));
+PDType0Font fontBold = PDType0Font.load(document, new FileInputStream("fonts/Bold.ttf"));
+PDType0Font fontItalic = PDType0Font.load(document, new FileInputStream("fonts/Italic.ttf"));
+PDType0Font fontBoldItalic = PDType0Font.load(document, new FileInputStream("fonts/BoldItalic.ttf"));
+
+// Register fonts for HTML tag support (<b>, <i>)
+addDefaultFonts(font, fontBold, fontItalic, fontBoldItalic);
+
+// Now you can use HTML in cells
+cell.setText("This is <b>bold</b> and <i>italic</i> text");
+```
+
+### Images in Cells
+
+```java
+import superpdf.image.Image;
+import superpdf.utils.PageContentStreamOptimized;
+
+// Load image
+Image image = new Image(ImageIO.read(new File("image.png")));
+
+// Scale image
+image.scaleByHeight(100f);
+// or
+image.scaleByWidth(150f);
+
+// Draw image on page
+PDPageContentStream contentStream = new PDPageContentStream(document, page, true, true);
+image.draw(document, new PageContentStreamOptimized(contentStream), x, y);
+contentStream.close();
+```
+
+### Writing Text Outside Tables
+
+```java
+import superpdf.utils.PDStreamUtils;
+import superpdf.utils.PageContentStreamOptimized;
+
+PDPageContentStream contentStream = new PDPageContentStream(document, page, true, true);
+PDStreamUtils.write(
+    new PageContentStreamOptimized(contentStream),
+    "Footer text",
+    font,
+    10,    // fontSize
+    50,    // x position
+    30,    // y position
+    Color.BLACK
+);
+contentStream.endText();
+contentStream.close();
+```
+
+### Creating Tables from CSV
+
+```java
+import superpdf.datatable.DataTable;
+
 BaseTable pdfTable = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, doc, page, true, true);
-DataTable t = new DataTable(pdfTable, page);
-t.addCsvToTable(data, DataTable.HASHEADER, ';');
+DataTable dataTable = new DataTable(pdfTable, page);
+
+String csvData = "Name;Age;City\nJohn;30;NYC\nJane;25;LA";
+dataTable.addCsvToTable(csvData, DataTable.HASHEADER, ';');
+
 pdfTable.draw();
 ```
 
-### Create a PDF from a List
+### Creating Tables from Lists
 
 ```java
-List<List> data = new ArrayList();
-data.add(new ArrayList<>(
-               Arrays.asList("Column One", "Column Two", "Column Three", "Column Four", "Column Five")));
-for (int i = 1; i <= 100; i++) {
-  data.add(new ArrayList<>(
-      Arrays.asList("Row " + i + " Col One", "Row " + i + " Col Two", "Row " + i + " Col Three", "Row " + i + " Col Four", "Row " + i + " Col Five")));
-}
-BaseTable dataTable = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, doc, page, true, true);
-DataTable t = new DataTable(dataTable, page);
-t.addListToTable(data, DataTable.HASHEADER);
-dataTable.draw();
+import superpdf.datatable.DataTable;
+
+List<List> data = new ArrayList<>();
+data.add(Arrays.asList("Name", "Age", "City"));
+data.add(Arrays.asList("John", "30", "NYC"));
+data.add(Arrays.asList("Jane", "25", "LA"));
+
+BaseTable pdfTable = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, doc, page, true, true);
+DataTable dataTable = new DataTable(pdfTable, page);
+dataTable.addListToTable(data, DataTable.HASHEADER);
+
+pdfTable.draw();
 ```
 
-### Build tables in PDF documents
+## BaseTable Constructor Parameters
 
 ```java
-BaseTable table = new BaseTable(yStart, yStartNewPage, bottomMargin, tableWidth, margin, doc, page, true, drawContent);
-// Create Header row
-Row<PDPage> headerRow = table.createRow(15f);
-Cell<PDPage> cell = headerRow.createCell(100, "Header Title");
-cell.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD));
-cell.setFillColor(Color.BLACK);
-table.addHeaderRow(headerRow);
-List<String[]> facts = getFacts();
-for (String[] fact : facts) {
-    Row<PDPage> row = table.createRow(10f);
-    cell = row.createCell((100 / 3.0f) * 2, fact[0]);
-    for (int i = 1; i < fact.length; i++) {
-        cell = row.createCell((100 / 9f), fact[i]);
-    }
-}
-table.draw();
+new BaseTable(
+    yStart,           // Starting Y position
+    yStartNewPage,    // Y position for new pages
+    bottomMargin,     // Bottom margin
+    tableWidth,       // Table width
+    margin,           // Left margin
+    document,         // PDDocument
+    page,             // PDPage
+    drawLines,        // Draw table lines (true/false)
+    drawContent       // Draw content (true/false)
+);
 ```
 
 ## License
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Licensed under the Apache License, Version 2.0.

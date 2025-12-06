@@ -1,0 +1,45 @@
+plugins {
+	id 'java'
+	id 'groovy'
+}
+
+wrapper {
+	gradleVersion = '8.5'
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_23
+	targetCompatibility = JavaVersion.VERSION_23
+}
+
+/*
+ * Gets the version name from the latest Git tag
+ */
+def getVersionName() {
+	def proc = ['git', 'describe', '--tags'].execute()
+	proc.waitFor()
+	return proc.text.trim()
+}
+version = getVersionName()
+group = 'io.github.zaqpiotr'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.apache.pdfbox:pdfbox:3.0.6'
+	implementation 'org.slf4j:slf4j-api:1.7.36'
+	implementation 'org.apache.commons:commons-csv:1.9.0'
+	implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
+
+	// Spock Framework with Groovy 5 for Java 23 support
+	testImplementation 'org.spockframework:spock-core:2.4-M7-groovy-5.0'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	testImplementation 'commons-io:commons-io:2.11.0'
+}
+
+test {
+	useJUnitPlatform()
+}

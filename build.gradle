@@ -1,8 +1,6 @@
 plugins {
     id 'java-library'
     id 'groovy'
-    id 'maven-publish'
-    id 'signing'
     id 'com.vanniktech.maven.publish' version '0.28.0'
 }
 
@@ -13,8 +11,6 @@ wrapper {
 java {
     sourceCompatibility = JavaVersion.VERSION_23
     targetCompatibility = JavaVersion.VERSION_23
-    withJavadocJar()
-    withSourcesJar()
 }
 
 /*

@@ -85,20 +85,6 @@ public class Image {
 	 * Method which scale {@link Image} with designated width
 	 * </p>
 	 *
-	 * @deprecated Use {@link #scaleByWidth}
-	 * @param width
-	 *            Maximal height where {@link Image} needs to be scaled
-	 * @return Scaled {@link Image}
-	 */
-	public Image scale(float width) {
-		return scaleByWidth(width);
-	}
-
-	/**
-	 * <p>
-	 * Method which scale {@link Image} with designated width
-	 * </p>
-	 *
 	 * @param width
 	 *            Maximal width where {@link Image} needs to be scaled
 	 * @return Scaled {@link Image}

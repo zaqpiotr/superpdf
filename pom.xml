@@ -6,7 +6,7 @@
 
     <groupId>io.github.zaqpiotr</groupId>
     <artifactId>superpdf</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.6</version>
     <packaging>jar</packaging>
 
     <name>SuperPDF</name>
@@ -95,20 +95,6 @@
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>3.1.0</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
                         </goals>
                     </execution>
                 </executions>

@@ -58,46 +58,6 @@ public abstract class Table<T extends PDPage> {
 
     private boolean drawDebug;
 
-    /**
-     * @deprecated Use one of the constructors that pass a {@link PageProvider}
-     * @param yStart Y position where {@link Table} will start
-     * @param yStartNewPage Y position where possible new page of {@link Table}
-     * will start
-     * @param pageBottomMargin bottom margin of {@link Table}
-     * @param width {@link Table} width
-     * @param margin {@link Table} margin
-     * @param document {@link PDDocument} where {@link Table} will be drawn
-     * @param currentPage current page where {@link Table} will be drawn (some
-     * tables are big and can be through multiple pages)
-     * @param drawLines draw {@link Table}'s borders
-     * @param drawContent draw {@link Table}'s content
-     * @throws IOException if fonts are not loaded correctly
-     */
-    @Deprecated
-    public Table(float yStart, float yStartNewPage, float pageBottomMargin, float width, float margin,
-            PDDocument document, T currentPage, boolean drawLines, boolean drawContent) throws IOException {
-        this(yStart, yStartNewPage, 0, pageBottomMargin, width, margin, document, currentPage, drawLines, drawContent,
-                null);
-    }
-  
-    /**
-     * @deprecated Use one of the constructors that pass a {@link PageProvider}
-     * @param yStartNewPage Y position where possible new page of {@link Table}
-     * will start
-     * @param pageBottomMargin bottom margin of {@link Table}
-     * @param width {@link Table} width
-     * @param margin {@link Table} margin
-     * @param document {@link PDDocument} where {@link Table} will be drawn
-     * @param drawLines draw {@link Table}'s borders
-     * @param drawContent draw {@link Table}'s content
-     * @throws IOException if fonts are not loaded correctly
-     */
-    @Deprecated
-    public Table(float yStartNewPage, float pageBottomMargin, float width, float margin, PDDocument document,
-            boolean drawLines, boolean drawContent) throws IOException {
-        this(yStartNewPage, 0, pageBottomMargin, width, margin, document, drawLines, drawContent, null);
-    }
-
     public Table(float yStart, float yStartNewPage, float pageTopMargin, float pageBottomMargin, float width,
             float margin, PDDocument document, T currentPage, boolean drawLines, boolean drawContent,
             PageProvider<T> pageProvider) throws IOException {
@@ -332,18 +292,8 @@ public abstract class Table<T extends PDPage> {
             return pageProvider.nextPage();
         }
 
-        return createPage();
-    }
-
-    /**
-     * @deprecated Use a {@link PageProvider} instead
-     * @return new {@link PDPage}
-     */
-    @Deprecated
-    // remove also createNewPage()
-    protected T createPage() {
         throw new IllegalStateException(
-                "You either have to provide a " + PageProvider.class.getCanonicalName() + " or override this method");
+                "You either have to provide a " + PageProvider.class.getCanonicalName() + " to the constructor");
     }
 
     private PageContentStreamOptimized createPdPageContentStream() throws IOException {
@@ -598,7 +548,6 @@ public abstract class Table<T extends PDPage> {
                     // calculate the width of this line
                     float freeSpaceWithinLine = cell.getParagraph().getMaxLineWidth()
                             - cell.getParagraph().getLineWidth(entry.getKey());
-                    // TODO: need to implemented rotated text yo!
                     if (cell.isTextRotated()) {
                         cursorY = lineStartY;
                         switch (cell.getAlign()) {
@@ -696,7 +645,7 @@ public abstract class Table<T extends PDPage> {
                                         this.tableContentStream.showText(token.getData());
                                         cursorX += token.getWidth(currentFont) / 1000 * cell.getFontSize();
                                     } catch (IOException e) {
-                                        e.printStackTrace();
+                                        throw new IllegalStateException("Unable to render text", e);
                                     }
                                 }
                                 break;
@@ -840,19 +789,6 @@ public abstract class Table<T extends PDPage> {
 
     public List<PDOutlineItem> getBookmarks() {
         return bookmarks;
-    }
-
-    /**
-     * /**
-     *
-     * @deprecated Use {@link #addHeaderRow(Row)} instead, as it supports
-     * multiple header rows
-     * @param header row that will be set as table's header row
-     */
-    @Deprecated
-    public void setHeader(Row<T> header) {
-        this.header.clear();
-        addHeaderRow(header);
     }
 
     /**

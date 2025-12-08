@@ -25,8 +25,8 @@ public class Cell<T extends PDPage> {
 
 	private URL url = null;
 
-	private PDFont font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
-	private PDFont fontBold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+	private PDFont font = null;
+	private PDFont fontBold = null;
 
 	private float fontSize = 8;
 	private Color fillColor;
@@ -370,14 +370,9 @@ public class Cell<T extends PDPage> {
 		}
 
 		if (isTextRotated()) {
-			try {
-				// TODO: maybe find more optimal way then this
-				return getFont().getStringWidth(getText()) / 1000 * getFontSize() + getTopPadding()
-						+ (getTopBorder() == null ? 0 : getTopBorder().getWidth()) + getBottomPadding()
-						+ (getBottomBorder() == null ? 0 : getBottomBorder().getWidth());
-			} catch (final IOException e) {
-				throw new IllegalStateException("Font not set.", e);
-			}
+			return FontUtils.getStringWidth(getFont(), getText(), getFontSize()) + getTopPadding()
+					+ (getTopBorder() == null ? 0 : getTopBorder().getWidth()) + getBottomPadding()
+					+ (getBottomBorder() == null ? 0 : getBottomBorder().getWidth());
 		} else {
 			return getTextHeight() + getTopPadding() + getBottomPadding()
 					+ (getTopBorder() == null ? 0 : getTopBorder().getWidth())

@@ -83,9 +83,11 @@ public class Paragraph {
 		this.font = font;
 		// check if we have different default font for italic and bold text
 		if (FontUtils.getDefaultfonts().isEmpty()) {
-			fontBold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-			fontItalic = new PDType1Font(Standard14Fonts.FontName.HELVETICA_OBLIQUE);
-			fontBoldItalic = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD_OBLIQUE);
+			// Fallback to using the base font for all variants if FontUtils is not initialized
+			// This prevents Helvetica font warnings in Docker environments
+			fontBold = font;
+			fontItalic = font;
+			fontBoldItalic = font;
 		} else {
 			fontBold = FontUtils.getDefaultfonts().get("fontBold");
 			fontBoldItalic = FontUtils.getDefaultfonts().get("fontBoldItalic");
@@ -217,7 +219,7 @@ public class Paragraph {
 								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING, String
 										.valueOf(orderingNumberAndTab / 1000 * getFontSize())));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 							orderListElement++;
 						} else {
@@ -227,7 +229,7 @@ public class Paragraph {
 								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
 										String.valueOf(tabBullet / 1000 * getFontSize())));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						}
 						textInLine.push(sinceLastWrapPoint);
@@ -290,7 +292,7 @@ public class Paragraph {
 								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
 										String.valueOf((tab + font.getStringWidth(orderingNumber)) / 1000 * getFontSize())));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						} else {
 							try {
@@ -299,8 +301,7 @@ public class Paragraph {
 								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
 										String.valueOf(tabBullet / 1000 * getFontSize())));
 							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						}
 					}
@@ -333,7 +334,7 @@ public class Paragraph {
 								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING, String
 										.valueOf(orderingNumberAndTab / 1000 * getFontSize())));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						} else {
 							try {
@@ -342,7 +343,7 @@ public class Paragraph {
 								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
 										String.valueOf(tabBullet / 1000 * getFontSize())));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						}
 					}
@@ -441,7 +442,7 @@ public class Paragraph {
 							try {
 								width += (currentFont.getStringWidth(String.valueOf(c)) / 1000f * fontSize);
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate text width", e);
 							}
 							if(alreadyTextInLine){
 								if (width < this.width - textInLine.trimmedWidth()) {
@@ -491,7 +492,7 @@ public class Paragraph {
 					}
 
 				} catch (IOException e) {
-					e.printStackTrace();
+					throw new IllegalStateException("Unable to calculate text width", e);
 				}
 				break;
 			}
@@ -619,75 +620,6 @@ public class Paragraph {
 		return FontUtils.getHeight(font, fontSize);
 	}
 
-	/**
-	 * @deprecated This method will be removed in a future release
-	 * @return current font width
-	 */
-	@Deprecated
-	public float getFontWidth() {
-		return font.getFontDescriptor().getFontBoundingBox().getWidth() / 1000 * fontSize;
-	}
-
-	/**
-	 * @deprecated This method will be removed in a future release
-	 * @param width
-	 *            Paragraph's width
-	 * @return {@link Paragraph} with designated width
-	 */
-	@Deprecated
-	public Paragraph withWidth(int width) {
-		invalidateLineWrapping();
-		this.width = width;
-		return this;
-	}
-
-	/**
-	 * @deprecated This method will be removed in a future release
-	 * @param font
-	 *            {@link PDFont} for {@link Paragraph}
-	 * @param fontSize
-	 *            font size for {@link Paragraph}
-	 * @return {@link Paragraph} with designated font and font size
-	 */
-	@Deprecated
-	public Paragraph withFont(PDFont font, int fontSize) {
-		invalidateLineWrapping();
-		this.spaceWidth = null;
-		this.font = font;
-		this.fontSize = fontSize;
-		return this;
-	}
-
-	// font, fontSize, width, and align are non-final and used in getLines(),
-	// so if they are mutated, getLines() needs to be recomputed
-	private void invalidateLineWrapping() {
-		lines = null;
-	}
-
-	/**
-	 * /**
-	 *
-	 * @deprecated This method will be removed in a future release
-	 * @param color
-	 *            {@code int} rgb value for color
-	 * @return Paragraph's {@link Color}
-	 */
-	@Deprecated
-	public Paragraph withColor(int color) {
-		this.color = new Color(color);
-		return this;
-	}
-
-	/**
-	 * @deprecated This method will be replaced by
-	 *             {@code public Color getColor()} in a future release
-	 * @return Paragraph's {@link Color}
-	 */
-	@Deprecated
-	public int getColor() {
-		return color.getRGB();
-	}
-
 	private float getHorizontalFreeSpace(final String text) {
 		try {
 			final float tw = font.getStringWidth(text.trim()) / 1000 * fontSize;
@@ -718,7 +650,7 @@ public class Paragraph {
 	}
 
 	public void setAlign(HorizontalAlignment align) {
-		invalidateLineWrapping();
+		lines = null; // invalidate line wrapping cache
 		this.align = align;
 	}
 

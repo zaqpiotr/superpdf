@@ -111,6 +111,10 @@ public class DataTable {
 		dpage.setMediaBox(page.getMediaBox());
 		dpage.setRotation(page.getRotation());
 		ddoc.addPage(dpage);
+		// Initialize FontUtils with Lato fonts if not already initialized
+		if (FontUtils.getDefaultfonts().isEmpty()) {
+			FontUtils.setLatoFontsAsDefault(ddoc);
+		}
 		BaseTable dummyTable = new BaseTable(10f, 10f, 10f, table.getWidth(), 10f, ddoc, dpage, false, false);
 		Row dr = dummyTable.createRow(0f);
 		headerCellTemplate = dr.createCell(10f, "A", HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
@@ -143,13 +147,23 @@ public class DataTable {
 		// Header style
 		headerCellTemplate.setFillColor(new Color(137, 218, 245));
 		headerCellTemplate.setTextColor(Color.BLACK);
-		headerCellTemplate.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD));
+		// Use Lato Bold from FontUtils if available, otherwise use the font set by the constructor
+		if (!FontUtils.getDefaultfonts().isEmpty()) {
+			headerCellTemplate.setFont(FontUtils.getDefaultfonts().get("fontBold"));
+		} else {
+			headerCellTemplate.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD));
+		}
 		headerCellTemplate.setBorderStyle(thinline);
 
 		// Normal cell style, all rows and columns are the same by default
 		defaultCellTemplate.setFillColor(new Color(242, 242, 242));
 		defaultCellTemplate.setTextColor(Color.BLACK);
-		defaultCellTemplate.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA));
+		// Use Lato Regular from FontUtils if available, otherwise use the font set by the constructor
+		if (!FontUtils.getDefaultfonts().isEmpty()) {
+			defaultCellTemplate.setFont(FontUtils.getDefaultfonts().get("font"));
+		} else {
+			defaultCellTemplate.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA));
+		}
 		defaultCellTemplate.setBorderStyle(thinline);
 		Iterator<Cell> iterator = dataCellTemplateEvenList.iterator();
 		while (iterator.hasNext()){
@@ -214,32 +228,6 @@ public class DataTable {
 	 */
 	public Cell getHeaderCellTemplate() {
 		return headerCellTemplate;
-	}
-
-	/**
-	 * <p>
-	 * Get the Cell Template that will be assigned to Data cells that are in
-	 * even rows, and are not the first or last column
-	 * </p>
-	 *
-	 * @return data {@link Cell}'s template
-	 */
-	@Deprecated
-	public Cell getDataCellTemplateEven() {
-		return dataCellTemplateEvenList.get(1);
-	}
-
-	/**
-	 * <p>
-	 * Get the Cell Template that will be assigned to Data cells that are in odd
-	 * rows, and are not the first or last column
-	 * </p>
-	 *
-	 * @return data {@link Cell}'s template
-	 */
-	@Deprecated
-	public Cell getDataCellTemplateOdd() {
-		return dataCellTemplateOddList.get(1);
 	}
 
 	/**

@@ -11,7 +11,6 @@ import java.util.Stack;
 
 import superpdf.utils.PageContentStreamOptimized;
 import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
 
 import superpdf.text.PipelineLayer;
 import superpdf.text.Token;
@@ -20,8 +19,16 @@ import superpdf.text.Tokenizer;
 import superpdf.text.WrappingFunction;
 import superpdf.utils.FontUtils;
 import superpdf.utils.PDStreamUtils;
-import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
+/**
+ * Represents a paragraph of text to be drawn on a PDF document.
+ * <p>
+ * This class handles text layout, wrapping, formatting (bold, italic, underline),
+ * and rendering of paragraphs in PDF documents. It supports HTML-like tags for
+ * text styling (bold, italic, paragraphs, lists) and provides configurable font,
+ * size, width, alignment, color, and line spacing.
+ * </p>
+ */
 public class Paragraph {
 
 	private float width;
@@ -41,6 +48,14 @@ public class Paragraph {
 	private final static int DEFAULT_TAB_AND_BULLET = 6;
 	private final static int BULLET_SPACE = 2;
 
+	// Cache for single-character strings to avoid repeated String.valueOf() calls
+	private static final String[] CHAR_CACHE = new String[128];
+	static {
+		for (int i = 0; i < 128; i++) {
+			CHAR_CACHE[i] = String.valueOf((char) i);
+		}
+	}
+
 	private boolean drawDebug;
 	private final Map<Integer, Float> lineWidths = new HashMap<>();
 	private Map<Integer, List<Token>> mapLineTokens = new LinkedHashMap<>();
@@ -49,6 +64,15 @@ public class Paragraph {
 	private List<String> lines;
 	private Float spaceWidth;
 
+	/**
+	 * Constructs a Paragraph with basic text styling properties.
+	 *
+	 * @param text the text content of the paragraph
+	 * @param font the {@link PDFont} to use for rendering
+	 * @param fontSize the font size in points
+	 * @param width the width constraint for text wrapping
+	 * @param align the {@link HorizontalAlignment} for text alignment
+	 */
 	public Paragraph(String text, PDFont font, float fontSize, float width, final HorizontalAlignment align) {
 		this(text, font, fontSize, width, align, null);
 	}
@@ -62,20 +86,67 @@ public class Paragraph {
 		}
 	};
 
+	/**
+	 * Constructs a Paragraph with integer font size and width parameters.
+	 * <p>
+	 * This constructor provides a simplified way to create paragraphs with default
+	 * left alignment and uses integer values instead of float values for font size and width.
+	 * </p>
+	 *
+	 * @param text the text content of the paragraph
+	 * @param font the {@link PDFont} to use for rendering
+	 * @param fontSize the font size in points
+	 * @param width the width constraint for text wrapping
+	 */
 	public Paragraph(String text, PDFont font, int fontSize, int width) {
 		this(text, font, fontSize, width, HorizontalAlignment.LEFT, null);
 	}
 
+	/**
+	 * Creates a new Paragraph with specified wrapping function.
+	 *
+	 * @param text the text content
+	 * @param font the font to use
+	 * @param fontSize the font size in points
+	 * @param width the paragraph width in points
+	 * @param align the horizontal alignment
+	 * @param wrappingFunction custom text wrapping function
+	 */
 	public Paragraph(String text, PDFont font, float fontSize, float width, final HorizontalAlignment align,
 			WrappingFunction wrappingFunction) {
 		this(text, font, fontSize, width, align, Color.BLACK, (TextType) null, wrappingFunction);
 	}
 
+	/**
+	 * Creates a new Paragraph with color and text type.
+	 *
+	 * @param text the text content
+	 * @param font the font to use
+	 * @param fontSize the font size in points
+	 * @param width the paragraph width in points
+	 * @param align the horizontal alignment
+	 * @param color the text color
+	 * @param textType the text type
+	 * @param wrappingFunction custom text wrapping function
+	 */
 	public Paragraph(String text, PDFont font, float fontSize, float width, final HorizontalAlignment align,
 			final Color color, final TextType textType, WrappingFunction wrappingFunction) {
 		this(text, font, fontSize, width, align, color, textType, wrappingFunction, 1);
 	}
 
+	/**
+	 * Creates a new Paragraph with full customization including line spacing.
+	 *
+	 * @param text the text content
+	 * @param font the font to use
+	 * @param fontSize the font size in points
+	 * @param width the paragraph width in points
+	 * @param align the horizontal alignment
+	 * @param color the text color
+	 * @param textType the text type
+	 * @param wrappingFunction custom text wrapping function
+	 * @param lineSpacing the line spacing multiplier (1.0 = normal spacing)
+	 */
 	public Paragraph(String text, PDFont font, float fontSize, float width, final HorizontalAlignment align,
 			final Color color, final TextType textType, WrappingFunction wrappingFunction, float lineSpacing) {
 		this.color = color;
@@ -83,9 +154,11 @@ public class Paragraph {
 		this.font = font;
 		// check if we have different default font for italic and bold text
 		if (FontUtils.getDefaultfonts().isEmpty()) {
-			fontBold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
-			fontItalic = new PDType1Font(Standard14Fonts.FontName.HELVETICA_OBLIQUE);
-			fontBoldItalic = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD_OBLIQUE);
+			// Fallback to using the base font for all variants if FontUtils is not initialized
+			// This prevents Helvetica font warnings in Docker environments
+			fontBold = font;
+			fontItalic = font;
+			fontBoldItalic = font;
 		} else {
 			fontBold = FontUtils.getDefaultfonts().get("fontBold");
 			fontBoldItalic = FontUtils.getDefaultfonts().get("fontBoldItalic");
@@ -99,6 +172,16 @@ public class Paragraph {
 		this.lineSpacing = lineSpacing;
 	}
 
+	/**
+	 * Gets the lines of text after wrapping and layout processing.
+	 * <p>
+	 * This method processes the paragraph text, applying word wrapping, HTML-like
+	 * formatting tags (bold, italic, lists, paragraphs), and returns the resulting
+	 * lines. The result is memoized for performance.
+	 * </p>
+	 *
+	 * @return a list of strings representing the wrapped and formatted lines
+	 */
 	public List<String> getLines() {
 		// memoize this function because it is very expensive
 		if (lines != null) {
@@ -139,7 +222,17 @@ public class Paragraph {
 					if (token.getData().equals("ol")) {
 						numberOfOrderedLists++;
 						if(listLevel > 1){
-							stack.add(new HTMLListNode(orderListElement-1, stack.isEmpty() ? String.valueOf(orderListElement-1)+"." : stack.peek().getValue() + String.valueOf(orderListElement-1) + "."));
+							// Use StringBuilder to avoid repeated string concatenation
+							String orderingValue;
+							if (stack.isEmpty()) {
+								orderingValue = (orderListElement - 1) + ".";
+							} else {
+								String peekValue = stack.peek().getValue();
+								StringBuilder sb = new StringBuilder(peekValue.length() + 10);
+								sb.append(peekValue).append(orderListElement - 1).append('.');
+								orderingValue = sb.toString();
+							}
+							stack.add(new HTMLListNode(orderListElement-1, orderingValue));
 						}
 						orderListElement = 1;
 
@@ -214,20 +307,18 @@ public class Paragraph {
 							try {
 								float tab = indentLevel(DEFAULT_TAB);
 								float orderingNumberAndTab = font.getStringWidth(orderingNumber) + tab;
-								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING, String
-										.valueOf(orderingNumberAndTab / 1000 * getFontSize())));
+								textInLine.push(currentFont, fontSize, Token.padding(orderingNumberAndTab / 1000 * getFontSize()));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 							orderListElement++;
 						} else {
 							try {
 								// if it's not left aligned then ignore list and list element and deal with it as normal text where <li> mimic <br> behaviour
 								float tabBullet = getAlign().equals(HorizontalAlignment.LEFT) ? indentLevel(DEFAULT_TAB*Math.max(listLevel - 1, 0) + DEFAULT_TAB_AND_BULLET) : indentLevel(DEFAULT_TAB);
-								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
-										String.valueOf(tabBullet / 1000 * getFontSize())));
+								textInLine.push(currentFont, fontSize, Token.padding(tabBullet / 1000 * getFontSize()));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						}
 						textInLine.push(sinceLastWrapPoint);
@@ -287,20 +378,17 @@ public class Paragraph {
 							try {
 								float tab = getAlign().equals(HorizontalAlignment.LEFT) ? indentLevel(DEFAULT_TAB*Math.max(listLevel - 1, 0) + DEFAULT_TAB) : indentLevel(DEFAULT_TAB);
 								String orderingNumber = stack.isEmpty() ? String.valueOf(orderListElement) + "." : stack.peek().getValue() + "." + String.valueOf(orderListElement-1) + ".";
-								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
-										String.valueOf((tab + font.getStringWidth(orderingNumber)) / 1000 * getFontSize())));
+								textInLine.push(currentFont, fontSize, Token.padding((tab + font.getStringWidth(orderingNumber)) / 1000 * getFontSize()));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						} else {
 							try {
 								// if it's not left aligned then ignore list and list element and deal with it as normal text where <li> mimic <br> behavior
 								float tabBullet = getAlign().equals(HorizontalAlignment.LEFT) ? indentLevel(DEFAULT_TAB*Math.max(listLevel - 1, 0) + DEFAULT_TAB_AND_BULLET)  : indentLevel(DEFAULT_TAB);
-								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
-										String.valueOf(tabBullet / 1000 * getFontSize())));
+								textInLine.push(currentFont, fontSize, Token.padding(tabBullet / 1000 * getFontSize()));
 							} catch (IOException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						}
 					}
@@ -330,19 +418,17 @@ public class Paragraph {
 							try {
 								float tab = indentLevel(DEFAULT_TAB);
 								float orderingNumberAndTab = font.getStringWidth(orderingNumber) + tab;
-								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING, String
-										.valueOf(orderingNumberAndTab / 1000 * getFontSize())));
+								textInLine.push(currentFont, fontSize, Token.padding(orderingNumberAndTab / 1000 * getFontSize()));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						} else {
 							try {
 								// if it's not left aligned then ignore list and list element and deal with it as normal text where <li> mimic <br> behaviour
 								float tabBullet = getAlign().equals(HorizontalAlignment.LEFT) ? indentLevel(DEFAULT_TAB*Math.max(listLevel - 1, 0) + DEFAULT_TAB_AND_BULLET) : indentLevel(DEFAULT_TAB);
-								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
-										String.valueOf(tabBullet / 1000 * getFontSize())));
+								textInLine.push(currentFont, fontSize, Token.padding(tabBullet / 1000 * getFontSize()));
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate list indentation", e);
 							}
 						}
 					}
@@ -363,8 +449,7 @@ public class Paragraph {
 					try {
 						// if it's not left aligned then ignore list and list element and deal with it as normal text where <li> mimic <br> behaviour
 						float tab = getAlign().equals(HorizontalAlignment.LEFT) ? indentLevel(DEFAULT_TAB*Math.max(listLevel - 1, 0) + DEFAULT_TAB) : indentLevel(DEFAULT_TAB);
-						textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
-								String.valueOf(tab / 1000 * getFontSize())));
+						textInLine.push(currentFont, fontSize, Token.padding(tab / 1000 * getFontSize()));
 						if (numberOfOrderedLists>0) {
 							// if it's ordering list then move depending on your: ordering number + ". "
 							String orderingNumber;
@@ -404,17 +489,16 @@ public class Paragraph {
 									orderingNumber = String.valueOf(orderListElement) + ". ";
 								}
 								float tabAndOrderingNumber = tab + font.getStringWidth(orderingNumber);
-								textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING, String.valueOf(tabAndOrderingNumber / 1000 * getFontSize())));
+								textInLine.push(currentFont, fontSize, Token.padding(tabAndOrderingNumber / 1000 * getFontSize()));
 								orderListElement++;
 							} else {
 								if(getAlign().equals(HorizontalAlignment.LEFT)){
 									float tab = indentLevel(DEFAULT_TAB*Math.max(listLevel - 1, 0) + DEFAULT_TAB + BULLET_SPACE);
-									textInLine.push(currentFont, fontSize, new Token(TokenType.PADDING,
-											String.valueOf(tab / 1000 * getFontSize())));
+									textInLine.push(currentFont, fontSize, Token.padding(tab / 1000 * getFontSize()));
 								}
 							}
 						} catch (IOException e) {
-							e.printStackTrace();
+							throw new IllegalStateException("Unable to calculate list indentation", e);
 						}
 					}
 				}
@@ -439,9 +523,11 @@ public class Paragraph {
 						for (int i = 0; i < lastTextToken.length(); i++) {
 							char c = lastTextToken.charAt(i);
 							try {
-								width += (currentFont.getStringWidth(String.valueOf(c)) / 1000f * fontSize);
+								// Use cached string for ASCII characters, otherwise create new string
+								String charStr = (c < 128) ? CHAR_CACHE[c] : String.valueOf(c);
+								width += (currentFont.getStringWidth(charStr) / 1000f * fontSize);
 							} catch (IOException e) {
-								e.printStackTrace();
+								throw new IllegalStateException("Unable to calculate text width", e);
 							}
 							if(alreadyTextInLine){
 								if (width < this.width - textInLine.trimmedWidth()) {
@@ -491,7 +577,7 @@ public class Paragraph {
 					}
 
 				} catch (IOException e) {
-					e.printStackTrace();
+					throw new IllegalStateException("Unable to calculate text width", e);
 				}
 				break;
 			}
@@ -538,6 +624,13 @@ public class Paragraph {
 		return numberOfSpaces * spaceWidth;
 	}
 
+	/**
+	 * Gets the appropriate font variant based on bold and italic flags.
+	 *
+	 * @param isBold whether bold formatting is applied
+	 * @param isItalic whether italic formatting is applied
+	 * @return the PDFont instance corresponding to the formatting flags
+	 */
 	public PDFont getFont(boolean isBold, boolean isItalic) {
 		if (isBold) {
 			if (isItalic) {
@@ -552,6 +645,19 @@ public class Paragraph {
 		}
 	}
 
+	/**
+	 * Writes the paragraph to the PDF page at the specified position.
+	 * <p>
+	 * This method renders all lines of the paragraph to the page content stream,
+	 * applying alignment, text formatting, and optional decorations (underline, etc.).
+	 * Debug mode can draw visual guides for font metrics and width constraints.
+	 * </p>
+	 *
+	 * @param stream the page content stream to write to
+	 * @param cursorX the x-coordinate of the starting position
+	 * @param cursorY the y-coordinate of the starting position
+	 * @return the y-coordinate after writing all lines (cursor position for next element)
+	 */
 	public float write(final PageContentStreamOptimized stream, float cursorX, float cursorY) {
 		if (drawDebug) {
 			PDStreamUtils.rectFontMetrics(stream, cursorX, cursorY, font, fontSize);
@@ -607,6 +713,16 @@ public class Paragraph {
 		return cursorY;
 	}
 
+	/**
+	 * Calculates the total height of the paragraph in points.
+	 * <p>
+	 * The height is calculated based on the number of lines, font height,
+	 * and line spacing. For paragraphs with multiple lines, spacing is applied
+	 * between lines but not after the last line.
+	 * </p>
+	 *
+	 * @return the total height of the paragraph in points, or 0 if there are no lines
+	 */
 	public float getHeight() {
 		if (getLines().size() == 0) {
 			return 0;
@@ -615,77 +731,13 @@ public class Paragraph {
 		}
 	}
 
+	/**
+	 * Gets the height of a single line of text using the current font and font size.
+	 *
+	 * @return the font height in points
+	 */
 	public float getFontHeight() {
 		return FontUtils.getHeight(font, fontSize);
-	}
-
-	/**
-	 * @deprecated This method will be removed in a future release
-	 * @return current font width
-	 */
-	@Deprecated
-	public float getFontWidth() {
-		return font.getFontDescriptor().getFontBoundingBox().getWidth() / 1000 * fontSize;
-	}
-
-	/**
-	 * @deprecated This method will be removed in a future release
-	 * @param width
-	 *            Paragraph's width
-	 * @return {@link Paragraph} with designated width
-	 */
-	@Deprecated
-	public Paragraph withWidth(int width) {
-		invalidateLineWrapping();
-		this.width = width;
-		return this;
-	}
-
-	/**
-	 * @deprecated This method will be removed in a future release
-	 * @param font
-	 *            {@link PDFont} for {@link Paragraph}
-	 * @param fontSize
-	 *            font size for {@link Paragraph}
-	 * @return {@link Paragraph} with designated font and font size
-	 */
-	@Deprecated
-	public Paragraph withFont(PDFont font, int fontSize) {
-		invalidateLineWrapping();
-		this.spaceWidth = null;
-		this.font = font;
-		this.fontSize = fontSize;
-		return this;
-	}
-
-	// font, fontSize, width, and align are non-final and used in getLines(),
-	// so if they are mutated, getLines() needs to be recomputed
-	private void invalidateLineWrapping() {
-		lines = null;
-	}
-
-	/**
-	 * /**
-	 *
-	 * @deprecated This method will be removed in a future release
-	 * @param color
-	 *            {@code int} rgb value for color
-	 * @return Paragraph's {@link Color}
-	 */
-	@Deprecated
-	public Paragraph withColor(int color) {
-		this.color = new Color(color);
-		return this;
-	}
-
-	/**
-	 * @deprecated This method will be replaced by
-	 *             {@code public Color getColor()} in a future release
-	 * @return Paragraph's {@link Color}
-	 */
-	@Deprecated
-	public int getColor() {
-		return color.getRGB();
 	}
 
 	private float getHorizontalFreeSpace(final String text) {
@@ -697,59 +749,170 @@ public class Paragraph {
 		}
 	}
 
+	/**
+	 * Gets the width constraint for this paragraph.
+	 *
+	 * @return the width in points
+	 */
 	public float getWidth() {
 		return width;
 	}
 
+	/**
+	 * Gets the original text content of this paragraph.
+	 *
+	 * @return the text content (may contain HTML-like formatting tags)
+	 */
 	public String getText() {
 		return text;
 	}
 
+	/**
+	 * Gets the font size for this paragraph.
+	 *
+	 * @return the font size in points
+	 */
 	public float getFontSize() {
 		return fontSize;
 	}
 
+	/**
+	 * Gets the base font used for this paragraph.
+	 *
+	 * @return the PDFont instance
+	 */
 	public PDFont getFont() {
 		return font;
 	}
 
+	/**
+	 * Gets the horizontal alignment of this paragraph.
+	 *
+	 * @return the horizontal alignment
+	 */
 	public HorizontalAlignment getAlign() {
 		return align;
 	}
 
+	/**
+	 * Sets the horizontal alignment for this paragraph.
+	 * <p>
+	 * Changing the alignment invalidates the line wrapping cache, forcing
+	 * the lines to be recalculated on the next call to {@link #getLines()}.
+	 * </p>
+	 *
+	 * @param align the horizontal alignment to set
+	 */
 	public void setAlign(HorizontalAlignment align) {
-		invalidateLineWrapping();
+		lines = null; // invalidate line wrapping cache
 		this.align = align;
 	}
 
+	/**
+	 * Checks if debug mode is enabled for this paragraph.
+	 * <p>
+	 * When debug mode is enabled, the {@link #write(PageContentStreamOptimized, float, float)}
+	 * method will draw visual guides showing font metrics and width constraints.
+	 * </p>
+	 *
+	 * @return true if debug mode is enabled, false otherwise
+	 */
 	public boolean isDrawDebug() {
 		return drawDebug;
 	}
 
+	/**
+	 * Sets the debug mode for this paragraph.
+	 * <p>
+	 * When debug mode is enabled, the {@link #write(PageContentStreamOptimized, float, float)}
+	 * method will draw visual guides showing font metrics and width constraints.
+	 * </p>
+	 *
+	 * @param drawDebug true to enable debug mode, false to disable
+	 */
 	public void setDrawDebug(boolean drawDebug) {
 		this.drawDebug = drawDebug;
 	}
 
+	/**
+	 * Gets the wrapping function used for text wrapping.
+	 * <p>
+	 * If no custom wrapping function was provided during construction,
+	 * returns the default wrapping function that splits on whitespace,
+	 * hyphens, and common punctuation.
+	 * </p>
+	 *
+	 * @return the wrapping function instance
+	 */
 	public WrappingFunction getWrappingFunction() {
 		return wrappingFunction == null ? DEFAULT_WRAP_FUNC : wrappingFunction;
 	}
 
+	/**
+	 * Gets the maximum width among all lines in this paragraph.
+	 * <p>
+	 * This value is calculated during line wrapping and represents the actual
+	 * width of the widest line, which may be less than the paragraph width constraint.
+	 * </p>
+	 *
+	 * @return the maximum line width in points
+	 */
 	public float getMaxLineWidth() {
 		return maxLineWidth;
 	}
 
+	/**
+	 * Gets the width of a specific line by its index.
+	 * <p>
+	 * Line indices are zero-based and correspond to the lines returned by {@link #getLines()}.
+	 * The width is calculated during line wrapping and represents the actual rendered width.
+	 * </p>
+	 *
+	 * @param key the zero-based line index
+	 * @return the width of the specified line in points
+	 */
 	public float getLineWidth(int key) {
 		return lineWidths.get(key);
 	}
 
+	/**
+	 * Gets a map of line indices to their corresponding tokens.
+	 * <p>
+	 * Each entry in the map represents a line (by zero-based index) and its
+	 * associated list of tokens that compose that line. This is useful for
+	 * advanced rendering or analysis of the paragraph structure.
+	 * </p>
+	 *
+	 * @return a map where keys are line indices and values are lists of tokens
+	 */
 	public Map<Integer, List<Token>> getMapLineTokens() {
 		return mapLineTokens;
 	}
 
+	/**
+	 * Gets the line spacing multiplier for this paragraph.
+	 * <p>
+	 * The line spacing determines the vertical space between lines.
+	 * A value of 1.0 represents normal spacing, values greater than 1.0
+	 * increase spacing, and values less than 1.0 decrease spacing.
+	 * </p>
+	 *
+	 * @return the line spacing multiplier
+	 */
 	public float getLineSpacing() {
 		return lineSpacing;
 	}
 
+	/**
+	 * Sets the line spacing multiplier for this paragraph.
+	 * <p>
+	 * The line spacing determines the vertical space between lines.
+	 * A value of 1.0 represents normal spacing, values greater than 1.0
+	 * increase spacing, and values less than 1.0 decrease spacing.
+	 * </p>
+	 *
+	 * @param lineSpacing the line spacing multiplier to set
+	 */
 	public void setLineSpacing(float lineSpacing) {
 		this.lineSpacing = lineSpacing;
 	}

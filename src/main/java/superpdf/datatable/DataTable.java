@@ -26,10 +26,20 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 /**
- * Write CSV documents directly to PDF Tables
+ * Utility class for writing CSV documents directly to PDF Tables.
+ * <p>
+ * This class provides functionality to import CSV data into PDF tables with
+ * customizable cell styling and templates for headers and data rows.
+ * </p>
  */
 public class DataTable {
+	/**
+	 * Constant indicating that the CSV data includes a header row.
+	 */
 	public static final Boolean HASHEADER = true;
+	/**
+	 * Constant indicating that the CSV data does not include a header row.
+	 */
 	public static final Boolean NOHEADER = false;
 	private Table table;
 	private List<Float> colWidths;
@@ -73,15 +83,13 @@ public class DataTable {
 	}
 
 	/**
-	 * <p>
-	 * Create a CSVTable object to be able to add CSV document to a Table. A
-	 * page needs to be passed to the constructor so the Template Cells can be
-	 * created. The column widths can be given
-	 * </p>
+	 * Create a CSVTable object to be able to add CSV document to a Table.
+	 * A page needs to be passed to the constructor so the Template Cells can be
+	 * created. The column widths can be specified to control the table layout.
 	 *
 	 * @param table {@link Table}
 	 * @param page {@link PDPage}
-	 * @param colWidths column widths
+	 * @param colWidths list of column widths; if empty, widths are calculated automatically
 	 * @throws IOException If there is an error releasing resources
 	 */
 	public DataTable(Table table, PDPage page, List<Float> colWidths) throws IOException {
@@ -89,16 +97,14 @@ public class DataTable {
 	}
 	
 	/**
-	 * <p>
-	 * Create a CSVTable object to be able to add CSV document to a Table. A
-	 * page needs to be passed to the constructor so the Template Cells can be
-	 * created. The column widths can be given and an interface allows you to update the cell property 
-	 * </p>
+	 * Create a CSVTable object to be able to add CSV document to a Table.
+	 * A page needs to be passed to the constructor so the Template Cells can be
+	 * created. The column widths can be specified and an interface allows you to update cell properties.
 	 *
 	 * @param table {@link Table}
 	 * @param page {@link PDPage}
-	 * @param colWidths column widths
-	 * @param updateCellProperty {@link UpdateCellProperty}
+	 * @param colWidths list of column widths; if empty, widths are calculated automatically
+	 * @param updateCellProperty {@link UpdateCellProperty} callback for updating cell properties
 	 * @throws IOException If there is an error releasing resources
 	 */
 	public DataTable(Table table, PDPage page, List<Float> colWidths, UpdateCellProperty updateCellProperty) throws IOException {
@@ -111,6 +117,10 @@ public class DataTable {
 		dpage.setMediaBox(page.getMediaBox());
 		dpage.setRotation(page.getRotation());
 		ddoc.addPage(dpage);
+		// Initialize FontUtils with Lato fonts if not already initialized
+		if (FontUtils.getDefaultfonts().isEmpty()) {
+			FontUtils.setLatoFontsAsDefault(ddoc);
+		}
 		BaseTable dummyTable = new BaseTable(10f, 10f, 10f, table.getWidth(), 10f, ddoc, dpage, false, false);
 		Row dr = dummyTable.createRow(0f);
 		headerCellTemplate = dr.createCell(10f, "A", HorizontalAlignment.CENTER, VerticalAlignment.MIDDLE);
@@ -143,13 +153,23 @@ public class DataTable {
 		// Header style
 		headerCellTemplate.setFillColor(new Color(137, 218, 245));
 		headerCellTemplate.setTextColor(Color.BLACK);
-		headerCellTemplate.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD));
+		// Use Lato Bold from FontUtils if available, otherwise use the font set by the constructor
+		if (!FontUtils.getDefaultfonts().isEmpty()) {
+			headerCellTemplate.setFont(FontUtils.getDefaultfonts().get("fontBold"));
+		} else {
+			headerCellTemplate.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD));
+		}
 		headerCellTemplate.setBorderStyle(thinline);
 
 		// Normal cell style, all rows and columns are the same by default
 		defaultCellTemplate.setFillColor(new Color(242, 242, 242));
 		defaultCellTemplate.setTextColor(Color.BLACK);
-		defaultCellTemplate.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA));
+		// Use Lato Regular from FontUtils if available, otherwise use the font set by the constructor
+		if (!FontUtils.getDefaultfonts().isEmpty()) {
+			defaultCellTemplate.setFont(FontUtils.getDefaultfonts().get("font"));
+		} else {
+			defaultCellTemplate.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA));
+		}
 		defaultCellTemplate.setBorderStyle(thinline);
 		Iterator<Cell> iterator = dataCellTemplateEvenList.iterator();
 		while (iterator.hasNext()){
@@ -199,7 +219,7 @@ public class DataTable {
 	 * Set the column widths
 	 * </p>
 	 *
-	 * @param colWidths
+	 * @param colWidths list of column widths to set
 	 */
 	public void setColWidths(List<Float> colWidths) {
 		this.colWidths = colWidths;
@@ -208,38 +228,12 @@ public class DataTable {
 	/**
 	 * <p>
 	 * Get the Cell Template that will be applied to header cells.
-	 * <p>
-	 * 
+	 * </p>
+	 *
 	 * @return header {@link Cell}'s template
 	 */
 	public Cell getHeaderCellTemplate() {
 		return headerCellTemplate;
-	}
-
-	/**
-	 * <p>
-	 * Get the Cell Template that will be assigned to Data cells that are in
-	 * even rows, and are not the first or last column
-	 * </p>
-	 *
-	 * @return data {@link Cell}'s template
-	 */
-	@Deprecated
-	public Cell getDataCellTemplateEven() {
-		return dataCellTemplateEvenList.get(1);
-	}
-
-	/**
-	 * <p>
-	 * Get the Cell Template that will be assigned to Data cells that are in odd
-	 * rows, and are not the first or last column
-	 * </p>
-	 *
-	 * @return data {@link Cell}'s template
-	 */
-	@Deprecated
-	public Cell getDataCellTemplateOdd() {
-		return dataCellTemplateOddList.get(1);
 	}
 
 	/**

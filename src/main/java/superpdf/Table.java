@@ -26,8 +26,18 @@ import org.apache.pdfbox.pdmodel.interactive.annotation.PDBorderStyleDictionary;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageXYZDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 
+/**
+ * Abstract base class for creating tables in PDF documents.
+ * Provides functionality for drawing tables with headers, rows, cells, borders, and bookmarks.
+ * Handles page breaks and manages table layout across multiple pages.
+ *
+ * @param <T> the type of PDPage used for this table
+ */
 public abstract class Table<T extends PDPage> {
 
+    /**
+     * The PDF document containing this table.
+     */
     public final PDDocument document;
     private float margin;
 
@@ -59,45 +69,21 @@ public abstract class Table<T extends PDPage> {
     private boolean drawDebug;
 
     /**
-     * @deprecated Use one of the constructors that pass a {@link PageProvider}
-     * @param yStart Y position where {@link Table} will start
-     * @param yStartNewPage Y position where possible new page of {@link Table}
-     * will start
-     * @param pageBottomMargin bottom margin of {@link Table}
-     * @param width {@link Table} width
-     * @param margin {@link Table} margin
-     * @param document {@link PDDocument} where {@link Table} will be drawn
-     * @param currentPage current page where {@link Table} will be drawn (some
-     * tables are big and can be through multiple pages)
-     * @param drawLines draw {@link Table}'s borders
-     * @param drawContent draw {@link Table}'s content
-     * @throws IOException if fonts are not loaded correctly
+     * Constructs a new Table with all positioning and styling parameters.
+     *
+     * @param yStart the starting Y coordinate on the first page
+     * @param yStartNewPage the starting Y coordinate on subsequent pages
+     * @param pageTopMargin the top margin for each page
+     * @param pageBottomMargin the bottom margin for each page
+     * @param width the width of the table
+     * @param margin the margin around the table
+     * @param document the PDF document to draw the table in
+     * @param currentPage the current page to start drawing on
+     * @param drawLines whether to draw table borders and lines
+     * @param drawContent whether to draw table content
+     * @param pageProvider the page provider for creating new pages
+     * @throws IOException if an error occurs during initialization
      */
-    @Deprecated
-    public Table(float yStart, float yStartNewPage, float pageBottomMargin, float width, float margin,
-            PDDocument document, T currentPage, boolean drawLines, boolean drawContent) throws IOException {
-        this(yStart, yStartNewPage, 0, pageBottomMargin, width, margin, document, currentPage, drawLines, drawContent,
-                null);
-    }
-  
-    /**
-     * @deprecated Use one of the constructors that pass a {@link PageProvider}
-     * @param yStartNewPage Y position where possible new page of {@link Table}
-     * will start
-     * @param pageBottomMargin bottom margin of {@link Table}
-     * @param width {@link Table} width
-     * @param margin {@link Table} margin
-     * @param document {@link PDDocument} where {@link Table} will be drawn
-     * @param drawLines draw {@link Table}'s borders
-     * @param drawContent draw {@link Table}'s content
-     * @throws IOException if fonts are not loaded correctly
-     */
-    @Deprecated
-    public Table(float yStartNewPage, float pageBottomMargin, float width, float margin, PDDocument document,
-            boolean drawLines, boolean drawContent) throws IOException {
-        this(yStartNewPage, 0, pageBottomMargin, width, margin, document, drawLines, drawContent, null);
-    }
-
     public Table(float yStart, float yStartNewPage, float pageTopMargin, float pageBottomMargin, float width,
             float margin, PDDocument document, T currentPage, boolean drawLines, boolean drawContent,
             PageProvider<T> pageProvider) throws IOException {
@@ -115,7 +101,22 @@ public abstract class Table<T extends PDPage> {
         this.pageProvider = pageProvider;
         loadFonts();
     }
-  
+
+    /**
+     * Constructs a new Table without specifying initial page and Y position.
+     * The table will start on a new page at the yStartNewPage position.
+     *
+     * @param yStartNewPage the starting Y coordinate on new pages
+     * @param pageTopMargin the top margin for each page
+     * @param pageBottomMargin the bottom margin for each page
+     * @param width the width of the table
+     * @param margin the margin around the table
+     * @param document the PDF document to draw the table in
+     * @param drawLines whether to draw table borders and lines
+     * @param drawContent whether to draw table content
+     * @param pageProvider the page provider for creating new pages
+     * @throws IOException if an error occurs during initialization
+     */
     public Table(float yStartNewPage, float pageTopMargin, float pageBottomMargin, float width, float margin,
             PDDocument document, boolean drawLines, boolean drawContent, PageProvider<T> pageProvider)
             throws IOException {
@@ -135,21 +136,66 @@ public abstract class Table<T extends PDPage> {
         this.currentPage = pageProvider.nextPage();
     }
 
+    /**
+     * Loads fonts required for rendering table content.
+     * Subclasses should override this method to load any custom fonts needed for the table.
+     *
+     * @throws IOException if an error occurs while loading fonts
+     */
     protected abstract void loadFonts() throws IOException;
 
+    /**
+     * Loads a font from the specified file path.
+     *
+     * @param fontPath the path to the font file to load
+     * @return the loaded PDType0Font object
+     * @throws IOException if an error occurs while loading the font
+     */
     protected PDType0Font loadFont(String fontPath) throws IOException {
         return FontUtils.loadFont(getDocument(), fontPath);
     }
 
+    /**
+     * Returns the PDDocument associated with this table.
+     *
+     * @return the PDDocument object
+     */
     protected PDDocument getDocument() {
         return document;
     }
 
+    /**
+     * Draws a title for the table without a custom wrapping function.
+     *
+     * @param title the title text to draw
+     * @param font the PDFont to use for the title
+     * @param fontSize the font size in points
+     * @param tableWidth the width available for the title
+     * @param height the height allocated for the title
+     * @param alignment the horizontal alignment of the title (e.g., "CENTER", "LEFT", "RIGHT")
+     * @param freeSpaceForPageBreak the minimum free space required before page break
+     * @param drawHeaderMargin whether to draw the header bottom margin
+     * @throws IOException if an error occurs while writing to the content stream
+     */
     public void drawTitle(String title, PDFont font, int fontSize, float tableWidth, float height, String alignment,
             float freeSpaceForPageBreak, boolean drawHeaderMargin) throws IOException {
         drawTitle(title, font, fontSize, tableWidth, height, alignment, freeSpaceForPageBreak, null, drawHeaderMargin);
     }
 
+    /**
+     * Draws a title for the table with optional custom wrapping function.
+     *
+     * @param title the title text to draw
+     * @param font the PDFont to use for the title
+     * @param fontSize the font size in points
+     * @param tableWidth the width available for the title
+     * @param height the height allocated for the title
+     * @param alignment the horizontal alignment of the title (e.g., "CENTER", "LEFT", "RIGHT")
+     * @param freeSpaceForPageBreak the minimum free space required before page break
+     * @param wrappingFunction the custom wrapping function, or null for default wrapping
+     * @param drawHeaderMargin whether to draw the header bottom margin
+     * @throws IOException if an error occurs while writing to the content stream
+     */
     public void drawTitle(String title, PDFont font, int fontSize, float tableWidth, float height, String alignment,
             float freeSpaceForPageBreak, WrappingFunction wrappingFunction, boolean drawHeaderMargin)
             throws IOException {
@@ -189,10 +235,21 @@ public abstract class Table<T extends PDPage> {
         }
     }
 
+    /**
+     * Returns the width of the table.
+     *
+     * @return the width in points
+     */
     public float getWidth() {
         return width;
     }
 
+    /**
+     * Creates a new row with the specified height.
+     *
+     * @param height the height of the row in points
+     * @return the newly created Row object
+     */
     public Row<T> createRow(float height) {
         Row<T> row = new Row<T>(this, height);
         row.setLineSpacing(lineSpacing);
@@ -200,6 +257,13 @@ public abstract class Table<T extends PDPage> {
         return row;
     }
 
+    /**
+     * Creates a new row with the specified cells and height.
+     *
+     * @param cells the list of cells to add to the row
+     * @param height the height of the row in points
+     * @return the newly created Row object
+     */
     public Row<T> createRow(List<Cell<T>> cells, float height) {
         Row<T> row = new Row<T>(this, cells, height);
         row.setLineSpacing(lineSpacing);
@@ -332,18 +396,8 @@ public abstract class Table<T extends PDPage> {
             return pageProvider.nextPage();
         }
 
-        return createPage();
-    }
-
-    /**
-     * @deprecated Use a {@link PageProvider} instead
-     * @return new {@link PDPage}
-     */
-    @Deprecated
-    // remove also createNewPage()
-    protected T createPage() {
         throw new IllegalStateException(
-                "You either have to provide a " + PageProvider.class.getCanonicalName() + " or override this method");
+                "You either have to provide a " + PageProvider.class.getCanonicalName() + " to the constructor");
     }
 
     private PageContentStreamOptimized createPdPageContentStream() throws IOException {
@@ -598,7 +652,6 @@ public abstract class Table<T extends PDPage> {
                     // calculate the width of this line
                     float freeSpaceWithinLine = cell.getParagraph().getMaxLineWidth()
                             - cell.getParagraph().getLineWidth(entry.getKey());
-                    // TODO: need to implemented rotated text yo!
                     if (cell.isTextRotated()) {
                         cursorY = lineStartY;
                         switch (cell.getAlign()) {
@@ -647,7 +700,7 @@ public abstract class Table<T extends PDPage> {
                                 }
                                 break;
                             case PADDING:
-                                cursorX += Float.parseFloat(token.getData());
+                                cursorX += token.getPaddingValue();
                                 break;
                             case ORDERING:
                                 currentFont = cell.getParagraph().getFont(boldCounter > 0, italicCounter > 0);
@@ -696,7 +749,7 @@ public abstract class Table<T extends PDPage> {
                                         this.tableContentStream.showText(token.getData());
                                         cursorX += token.getWidth(currentFont) / 1000 * cell.getFontSize();
                                     } catch (IOException e) {
-                                        e.printStackTrace();
+                                        throw new IllegalStateException("Unable to render text", e);
                                     }
                                 }
                                 break;
@@ -808,6 +861,12 @@ public abstract class Table<T extends PDPage> {
         this.tableContentStream.close();
     }
 
+    /**
+     * Returns the current page of the table.
+     *
+     * @return the current PDPage object
+     * @throws NullPointerException if no current page is defined
+     */
     public T getCurrentPage() {
         if (this.currentPage == null) {
             throw new NullPointerException("No current page defined.");
@@ -838,21 +897,13 @@ public abstract class Table<T extends PDPage> {
         bookmarks.add(bookmark);
     }
 
+    /**
+     * Returns the list of bookmarks created during table rendering.
+     *
+     * @return the list of PDOutlineItem bookmarks, or null if no bookmarks were added
+     */
     public List<PDOutlineItem> getBookmarks() {
         return bookmarks;
-    }
-
-    /**
-     * /**
-     *
-     * @deprecated Use {@link #addHeaderRow(Row)} instead, as it supports
-     * multiple header rows
-     * @param header row that will be set as table's header row
-     */
-    @Deprecated
-    public void setHeader(Row<T> header) {
-        this.header.clear();
-        addHeaderRow(header);
     }
 
     /**
@@ -926,50 +977,110 @@ public abstract class Table<T extends PDPage> {
         return header.get(header.size() - 1);
     }
 
+    /**
+     * Returns the margin of the table.
+     *
+     * @return the margin in points
+     */
     public float getMargin() {
         return margin;
     }
 
+    /**
+     * Sets the starting Y coordinate for the table.
+     *
+     * @param yStart the new starting Y coordinate
+     */
     protected void setYStart(float yStart) {
         this.yStart = yStart;
     }
 
+    /**
+     * Checks if debug drawing is enabled for the table.
+     *
+     * @return true if debug drawing is enabled, false otherwise
+     */
     public boolean isDrawDebug() {
         return drawDebug;
     }
 
+    /**
+     * Sets whether debug drawing should be enabled for the table.
+     *
+     * @param drawDebug true to enable debug drawing, false to disable
+     */
     public void setDrawDebug(boolean drawDebug) {
         this.drawDebug = drawDebug;
     }
 
+    /**
+     * Checks if the table has been broken across multiple pages.
+     *
+     * @return true if the table is broken across pages, false otherwise
+     */
     public boolean tableIsBroken() {
         return tableIsBroken;
     }
 
+    /**
+     * Sets whether the table is broken across multiple pages.
+     *
+     * @param tableIsBroken true if the table is broken across pages, false otherwise
+     */
     public void setTableIsBroken(boolean tableIsBroken) {
         this.tableIsBroken = tableIsBroken;
     }
 
+    /**
+     * Gets the list of rows in this table.
+     *
+     * @return the list of rows
+     */
     public List<Row<T>> getRows() {
         return rows;
     }
 
+    /**
+     * Checks if the table started rendering at the beginning of a new page.
+     *
+     * @return true if the table started at a new page, false otherwise
+     */
     public boolean tableStartedAtNewPage() {
         return tableStartedAtNewPage;
     }
 
+    /**
+     * Gets the line spacing used for text in the table.
+     *
+     * @return the line spacing value
+     */
     public float getLineSpacing() {
         return lineSpacing;
     }
 
+    /**
+     * Sets the line spacing for text in the table.
+     *
+     * @param lineSpacing the new line spacing value
+     */
     public void setLineSpacing(float lineSpacing) {
         this.lineSpacing = lineSpacing;
     }
 
+    /**
+     * Checks if all borders have been removed from the table.
+     *
+     * @return true if all borders are removed, false otherwise
+     */
     public boolean allBordersRemoved() {
         return removeAllBorders;
     }
 
+    /**
+     * Sets whether all borders should be removed from the table.
+     *
+     * @param removeAllBorders true to remove all borders, false to keep them
+     */
     public void removeAllBorders(boolean removeAllBorders) {
         this.removeAllBorders = removeAllBorders;
     }

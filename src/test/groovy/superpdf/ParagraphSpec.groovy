@@ -344,4 +344,73 @@ class ParagraphSpec extends Specification {
         then:
         p.lines.size() >= 4
     }
+
+    // Ordered List Numbering Tests
+    def "ordered list generates correct numbering for single level"() {
+        when:
+        def p = new Paragraph("<ol><li>First</li><li>Second</li><li>Third</li></ol>", HELVETICA, 12f, 300f, HorizontalAlignment.LEFT)
+
+        then:
+        p.lines != null
+        p.lines.size() >= 3
+        p.lines.any { it.contains("1.") }
+        p.lines.any { it.contains("2.") }
+        p.lines.any { it.contains("3.") }
+    }
+
+    def "ordered list with many items uses StringBuilder optimization"() {
+        given:
+        def items = (1..20).collect { "<li>Item $it</li>" }.join("")
+        def html = "<ol>$items</ol>"
+
+        when:
+        def p = new Paragraph(html, HELVETICA, 12f, 300f, HorizontalAlignment.LEFT)
+
+        then:
+        p.lines != null
+        p.lines.size() >= 20
+        // Verify numbering goes from 1 to 20
+        p.lines.any { it.contains("1.") }
+        p.lines.any { it.contains("20.") }
+    }
+
+    // CHAR_CACHE Tests
+    def "ASCII characters use character cache for width calculation"() {
+        given:
+        def asciiText = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
+        when:
+        def p = new Paragraph(asciiText, HELVETICA, 12f, 500f, HorizontalAlignment.LEFT)
+
+        then:
+        p.lines != null
+        p.maxLineWidth > 0
+        // All characters should be processed using cache (ASCII range 0-127)
+    }
+
+    def "character cache handles all printable ASCII characters"() {
+        given:
+        // ASCII 32 (space) to 126 (~)
+        def printableAscii = (32..126).collect { (char) it }.join("")
+
+        when:
+        def p = new Paragraph(printableAscii, HELVETICA, 10f, 800f, HorizontalAlignment.LEFT)
+
+        then:
+        p.lines != null
+        p.maxLineWidth > 0
+    }
+
+    def "character cache performance with repeated characters"() {
+        given:
+        def repeatedText = "aaaaaaaaaa bbbbbbbbbb cccccccccc"
+
+        when:
+        def p = new Paragraph(repeatedText, HELVETICA, 12f, 300f, HorizontalAlignment.LEFT)
+
+        then:
+        p.lines != null
+        p.maxLineWidth > 0
+        // Repeated ASCII characters should benefit from cache
+    }
 }

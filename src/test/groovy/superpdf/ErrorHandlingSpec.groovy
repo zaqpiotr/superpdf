@@ -231,4 +231,52 @@ class ErrorHandlingSpec extends Specification {
         then:
         cell.text != null
     }
+
+    // List Indentation Error Handling Tests
+    def "paragraph with valid font does not throw exception during unordered list processing"() {
+        given:
+        def validFont = new org.apache.pdfbox.pdmodel.font.PDType1Font(
+            org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA
+        )
+
+        when:
+        def p = new Paragraph("<ul><li>Item 1</li><li>Item 2</li></ul>", validFont, 12f, 200f, HorizontalAlignment.LEFT)
+        def lines = p.lines
+
+        then:
+        noExceptionThrown()
+        lines != null
+        lines.size() >= 2
+    }
+
+    def "paragraph with valid font does not throw exception during ordered list processing"() {
+        given:
+        def validFont = new org.apache.pdfbox.pdmodel.font.PDType1Font(
+            org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA
+        )
+
+        when:
+        def p = new Paragraph("<ol><li>First</li><li>Second</li></ol>", validFont, 12f, 200f, HorizontalAlignment.LEFT)
+        def lines = p.lines
+
+        then:
+        noExceptionThrown()
+        lines != null
+        lines.size() >= 2
+    }
+
+    def "paragraph with mixed content and lists processes correctly"() {
+        given:
+        def validFont = new org.apache.pdfbox.pdmodel.font.PDType1Font(
+            org.apache.pdfbox.pdmodel.font.Standard14Fonts.FontName.HELVETICA
+        )
+
+        when:
+        def p = new Paragraph("Text before <ul><li>Item 1</li><li>Item 2</li></ul>", validFont, 12f, 200f, HorizontalAlignment.LEFT)
+        def lines = p.lines
+
+        then:
+        noExceptionThrown()
+        lines != null
+    }
 }

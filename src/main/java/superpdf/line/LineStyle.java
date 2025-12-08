@@ -19,14 +19,11 @@ public class LineStyle {
 	private float dashPhase;
 
 	/**
-	 * <p>
-	 * Simple constructor for setting line {@link Color} and line width
-	 * </p>
+	 * Constructs a LineStyle with the specified color and width.
+	 * This creates a solid line without dashing or dotting.
 	 *
-	 * @param color
-	 *            The line {@link Color}
-	 * @param width
-	 *            The line width
+	 * @param color the {@link Color} of the line
+	 * @param width the width of the line in points
 	 */
 	public LineStyle(final Color color, final float width) {
 		this.color = color;
@@ -68,6 +65,7 @@ public class LineStyle {
 	}
 
 	/**
+	 * Produces a dashed line style with specified color, width, and dash pattern.
 	 *
 	 * @param color
 	 *            The {@link Color} of the line
@@ -88,18 +86,42 @@ public class LineStyle {
 		return line;
 	}
 
+	/**
+	 * Gets the color of this line.
+	 *
+	 * @return the {@link Color} of the line
+	 */
 	public Color getColor() {
 		return color;
 	}
 
+	/**
+	 * Gets the width of this line.
+	 *
+	 * @return the width in points
+	 */
 	public float getWidth() {
 		return width;
 	}
 
+	/**
+	 * Gets the dash array pattern for this line.
+	 * Returns null for solid lines, or an array of alternating on/off dash lengths
+	 * for dashed or dotted lines. Mimics the behavior of {@link BasicStroke#getDashArray()}.
+	 *
+	 * @return the dash array, or null if this is a solid line
+	 */
 	public float[] getDashArray() {
 		return dashArray;
 	}
 
+	/**
+	 * Gets the dash phase offset for this line.
+	 * Determines where in the dash pattern to start. Mimics the behavior of
+	 * {@link BasicStroke#getDashPhase()}.
+	 *
+	 * @return the dash phase offset
+	 */
 	public float getDashPhase() {
 		return dashPhase;
     }

@@ -21,6 +21,13 @@ import superpdf.text.Token;
 import superpdf.utils.FontUtils;
 import superpdf.utils.PDStreamUtils;
 
+/**
+ * Represents a table cell that can contain HTML table data.
+ * This cell type parses HTML table markup and renders it within the cell bounds,
+ * supporting nested tables, cell styling, and content formatting.
+ *
+ * @param <T> the type of PDPage this cell is rendered on
+ */
 public class TableCell<T extends PDPage> extends Cell<T> {
 
 	private final static Logger logger = LoggerFactory.getLogger(TableCell.class);
@@ -169,8 +176,10 @@ public class TableCell<T extends PDPage> extends Cell<T> {
 			}
 			for (Element col : tableHasHeaderColumns ? tableHeaderCols : tableCols) {
 				if (col.attr("colspan") != null && !col.attr("colspan").isEmpty()) {
+					// Cache parsed colspan value to avoid parsing twice
+					int colspan = Integer.parseInt(col.attr("colspan"));
 					Cell<T> cell = (Cell<T>) row.createCell(
-							tableWidth / columnsSize * Integer.parseInt(col.attr("colspan")) / row.getWidth() * 100,
+							tableWidth / columnsSize * colspan / row.getWidth() * 100,
 							col.html().replace("&amp;", "&"));
 				} else {
 					Cell<T> cell = (Cell<T>) row.createCell(tableWidth / columnsSize / row.getWidth() * 100,
@@ -263,7 +272,7 @@ public class TableCell<T extends PDPage> extends Cell<T> {
 					}
 					break;
 				case PADDING:
-					cursorX += Float.parseFloat(token.getData());
+					cursorX += token.getPaddingValue();
 					break;
 				case ORDERING:
 					currentFont = paragraph.getFont(boldCounter > 0, italicCounter > 0);
@@ -408,18 +417,38 @@ public class TableCell<T extends PDPage> extends Cell<T> {
 		}
 	}
 
+	/**
+	 * Gets the X position where this cell is rendered on the page.
+	 *
+	 * @return the X coordinate in points
+	 */
 	public float getXPosition() {
 		return xStart;
 	}
 
+	/**
+	 * Sets the X position where this cell should be rendered on the page.
+	 *
+	 * @param xStart the X coordinate in points
+	 */
 	public void setXPosition(float xStart) {
 		this.xStart = xStart;
 	}
 
+	/**
+	 * Gets the Y position where this cell is rendered on the page.
+	 *
+	 * @return the Y coordinate in points
+	 */
 	public float getYPosition() {
 		return yStart;
 	}
 
+	/**
+	 * Sets the Y position where this cell should be rendered on the page.
+	 *
+	 * @param yStart the Y coordinate in points
+	 */
 	public void setYPosition(float yStart) {
 		this.yStart = yStart;
 	}

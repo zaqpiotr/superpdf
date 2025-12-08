@@ -166,6 +166,19 @@ public final class FontUtils {
 		fontMetrics.put(font.getName(), new FontMetrics(base + ascent - descent, ascent, descent));
 	}
 
+	/**
+	 * Adds default fonts to be used throughout the document generation.
+	 * <p>
+	 * These fonts will be used as fallback fonts for text rendering when no specific
+	 * font is provided. The fonts are stored in a map with keys: "font", "fontBold",
+	 * "fontItalic", and "fontBoldItalic".
+	 * </p>
+	 *
+	 * @param font the regular (normal) font
+	 * @param fontBold the bold variant font
+	 * @param fontItalic the italic variant font
+	 * @param fontBoldItalic the bold and italic variant font
+	 */
 	public static void addDefaultFonts(final PDFont font, final PDFont fontBold, final PDFont fontItalic,
 			final PDFont fontBoldItalic) {
 		defaultFonts.put("font", font);
@@ -174,10 +187,25 @@ public final class FontUtils {
 		defaultFonts.put("fontBoldItalic", fontBoldItalic);
 	}
 
+	/**
+	 * Retrieves the map of default fonts currently configured.
+	 *
+	 * @return a map of default fonts with keys "font", "fontBold", "fontItalic", and "fontBoldItalic",
+	 *         or an empty map if no default fonts are configured
+	 */
 	public static Map<String, PDFont> getDefaultfonts() {
 		return defaultFonts;
 	}
 
+	/**
+	 * Sets FreeSans fonts as the default fonts to be used throughout the document generation.
+	 * <p>
+	 * This method loads the FreeSans font family (Regular, Bold, Oblique, and BoldOblique)
+	 * from the classpath and sets them as the default fonts.
+	 * </p>
+	 *
+	 * @param document the {@link PDDocument} in which the fonts will be embedded
+	 */
 	public static void setSansFontsAsDefault(PDDocument document) {
 		defaultFonts.put("font", loadFont(document, "fonts/FreeSans.ttf"));
 		defaultFonts.put("fontBold", loadFont(document, "fonts/FreeSansBold.ttf"));
@@ -185,6 +213,15 @@ public final class FontUtils {
 		defaultFonts.put("fontBoldItalic", loadFont(document, "fonts/FreeSansBoldOblique.ttf"));
 	}
 
+	/**
+	 * Sets Lato fonts as the default fonts to be used throughout the document generation.
+	 * <p>
+	 * This method loads the Lato font family (Regular, Bold, Italic, and BoldItalic)
+	 * from the classpath and sets them as the default fonts.
+	 * </p>
+	 *
+	 * @param document the {@link PDDocument} in which the fonts will be embedded
+	 */
 	public static void setLatoFontsAsDefault(PDDocument document) {
 		defaultFonts.put("font", loadFont(document, "fonts/Lato-Regular.ttf"));
 		defaultFonts.put("fontBold", loadFont(document, "fonts/Lato-Bold.ttf"));

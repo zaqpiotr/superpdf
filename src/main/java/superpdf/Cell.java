@@ -17,6 +17,16 @@ import superpdf.text.WrappingFunction;
 import superpdf.utils.FontUtils;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
+/**
+ * Represents a table cell in a PDF document with configurable content, styling, and layout properties.
+ * <p>
+ * A cell contains text content and supports various formatting options including fonts, colors, padding,
+ * borders, alignment, and text rotation. Cells are contained within rows and can be styled individually
+ * or inherit styles from other cells.
+ * </p>
+ *
+ * @param <T> The type of {@link PDPage} that this cell will be rendered on
+ */
 public class Cell<T extends PDPage> {
 
 	private float width;
@@ -329,6 +339,13 @@ public class Cell<T extends PDPage> {
 		return paragraph;
 	}
 
+	/**
+	 * <p>
+	 * Gets the extra width for this cell, which includes any extra width from the previous cell in the row.
+	 * </p>
+	 *
+	 * @return The cumulative extra width from the row's last cell plus this cell's width
+	 */
 	public float getExtraWidth() {
 		return this.row.getLastCellExtraWidth() + getWidth();
 	}
@@ -562,26 +579,68 @@ public class Cell<T extends PDPage> {
 		}
 	}
 
+	/**
+	 * <p>
+	 * Gets the horizontal alignment of the cell's content.
+	 * </p>
+	 *
+	 * @return The {@link HorizontalAlignment} of the cell's content
+	 */
 	public HorizontalAlignment getAlign() {
 		return align;
 	}
 
+	/**
+	 * <p>
+	 * Gets the vertical alignment of the cell's content.
+	 * </p>
+	 *
+	 * @return The {@link VerticalAlignment} of the cell's content
+	 */
 	public VerticalAlignment getValign() {
 		return valign;
 	}
 
+	/**
+	 * <p>
+	 * Checks whether this cell is a header cell.
+	 * </p>
+	 *
+	 * @return {@code true} if this is a header cell, {@code false} otherwise
+	 */
 	public boolean isHeaderCell() {
 		return isHeaderCell;
 	}
 
+	/**
+	 * <p>
+	 * Sets whether this cell is a header cell.
+	 * </p>
+	 *
+	 * @param isHeaderCell {@code true} to mark this as a header cell, {@code false} otherwise
+	 */
 	public void setHeaderCell(boolean isHeaderCell) {
 		this.isHeaderCell = isHeaderCell;
 	}
 
+	/**
+	 * <p>
+	 * Gets the wrapping function used for text wrapping in this cell.
+	 * </p>
+	 *
+	 * @return The {@link WrappingFunction} used for text wrapping
+	 */
 	public WrappingFunction getWrappingFunction() {
 		return getParagraph().getWrappingFunction();
 	}
 
+	/**
+	 * <p>
+	 * Sets the wrapping function used for text wrapping in this cell.
+	 * </p>
+	 *
+	 * @param wrappingFunction The {@link WrappingFunction} to use for text wrapping
+	 */
 	public void setWrappingFunction(WrappingFunction wrappingFunction) {
 		this.wrappingFunction = wrappingFunction;
 
@@ -589,34 +648,90 @@ public class Cell<T extends PDPage> {
 		paragraph = null;
 	}
 
+	/**
+	 * <p>
+	 * Gets the line style for the left border of this cell.
+	 * </p>
+	 *
+	 * @return The {@link LineStyle} of the left border
+	 */
 	public LineStyle getLeftBorder() {
 		return leftBorderStyle;
 	}
 
+	/**
+	 * <p>
+	 * Gets the line style for the right border of this cell.
+	 * </p>
+	 *
+	 * @return The {@link LineStyle} of the right border
+	 */
 	public LineStyle getRightBorder() {
 		return rightBorderStyle;
 	}
 
+	/**
+	 * <p>
+	 * Gets the line style for the top border of this cell.
+	 * </p>
+	 *
+	 * @return The {@link LineStyle} of the top border
+	 */
 	public LineStyle getTopBorder() {
 		return topBorderStyle;
 	}
 
+	/**
+	 * <p>
+	 * Gets the line style for the bottom border of this cell.
+	 * </p>
+	 *
+	 * @return The {@link LineStyle} of the bottom border
+	 */
 	public LineStyle getBottomBorder() {
 		return bottomBorderStyle;
 	}
 
+	/**
+	 * <p>
+	 * Sets the line style for the left border of this cell.
+	 * </p>
+	 *
+	 * @param leftBorder The {@link LineStyle} to apply to the left border
+	 */
 	public void setLeftBorderStyle(LineStyle leftBorder) {
 		this.leftBorderStyle = leftBorder;
 	}
 
+	/**
+	 * <p>
+	 * Sets the line style for the right border of this cell.
+	 * </p>
+	 *
+	 * @param rightBorder The {@link LineStyle} to apply to the right border
+	 */
 	public void setRightBorderStyle(LineStyle rightBorder) {
 		this.rightBorderStyle = rightBorder;
 	}
 
+	/**
+	 * <p>
+	 * Sets the line style for the top border of this cell.
+	 * </p>
+	 *
+	 * @param topBorder The {@link LineStyle} to apply to the top border
+	 */
 	public void setTopBorderStyle(LineStyle topBorder) {
 		this.topBorderStyle = topBorder;
 	}
 
+	/**
+	 * <p>
+	 * Sets the line style for the bottom border of this cell.
+	 * </p>
+	 *
+	 * @param bottomBorder The {@link LineStyle} to apply to the bottom border
+	 */
 	public void setBottomBorderStyle(LineStyle bottomBorder) {
 		this.bottomBorderStyle = bottomBorder;
 	}
@@ -636,14 +751,35 @@ public class Cell<T extends PDPage> {
 		this.bottomBorderStyle = border;
 	}
 
+	/**
+	 * <p>
+	 * Checks whether the text in this cell is rotated.
+	 * </p>
+	 *
+	 * @return {@code true} if the text is rotated, {@code false} otherwise
+	 */
 	public boolean isTextRotated() {
 		return textRotated;
 	}
 
+	/**
+	 * <p>
+	 * Sets whether the text in this cell should be rotated.
+	 * </p>
+	 *
+	 * @param textRotated {@code true} to rotate the text, {@code false} otherwise
+	 */
 	public void setTextRotated(boolean textRotated) {
 		this.textRotated = textRotated;
 	}
 
+	/**
+	 * <p>
+	 * Gets the bold font used for this cell.
+	 * </p>
+	 *
+	 * @return The {@link PDFont} used for bold text
+	 */
 	public PDFont getFontBold() {
 		return fontBold;
 	}
@@ -661,18 +797,46 @@ public class Cell<T extends PDPage> {
 		this.fontBold = fontBold;
 	}
 
+	/**
+	 * <p>
+	 * Checks whether this cell spans multiple columns.
+	 * </p>
+	 *
+	 * @return {@code true} if this cell spans multiple columns, {@code false} otherwise
+	 */
 	public boolean isColspanCell() {
 		return isColspanCell;
 	}
 
+	/**
+	 * <p>
+	 * Sets whether this cell spans multiple columns.
+	 * </p>
+	 *
+	 * @param isColspanCell {@code true} to make this cell span multiple columns, {@code false} otherwise
+	 */
 	public void setColspanCell(boolean isColspanCell) {
 		this.isColspanCell = isColspanCell;
 	}
 
+	/**
+	 * <p>
+	 * Sets the horizontal alignment of the cell's content.
+	 * </p>
+	 *
+	 * @param align The {@link HorizontalAlignment} to apply to the cell's content
+	 */
 	public void setAlign(HorizontalAlignment align) {
 		this.align = align;
 	}
 
+	/**
+	 * <p>
+	 * Sets the vertical alignment of the cell's content.
+	 * </p>
+	 *
+	 * @param valign The {@link VerticalAlignment} to apply to the cell's content
+	 */
 	public void setValign(VerticalAlignment valign) {
 		this.valign = valign;
 	}
@@ -733,36 +897,94 @@ public class Cell<T extends PDPage> {
 		return true;
 	}
 
+	/**
+	 * <p>
+	 * Sets the width of this cell.
+	 * </p>
+	 *
+	 * @param width The width of the cell in points
+	 */
 	public void setWidth(float width) {
 		this.width = width;
 	}
 
+	/**
+	 * <p>
+	 * Gets the line spacing used for multi-line text in this cell.
+	 * </p>
+	 *
+	 * @return The line spacing multiplier (e.g., 1.0 for single spacing, 1.5 for 1.5 spacing)
+	 */
 	public float getLineSpacing() {
 		return lineSpacing;
 	}
 
+	/**
+	 * <p>
+	 * Sets the line spacing used for multi-line text in this cell.
+	 * </p>
+	 *
+	 * @param lineSpacing The line spacing multiplier (e.g., 1.0 for single spacing, 1.5 for 1.5 spacing)
+	 */
 	public void setLineSpacing(float lineSpacing) {
 		this.lineSpacing = lineSpacing;
 	}
 
+	/**
+	 * <p>
+	 * Adds a listener that will be notified when the cell's content is drawn.
+	 * </p>
+	 *
+	 * @param listener The {@link CellContentDrawnListener} to add
+	 */
 	public void addContentDrawnListener(CellContentDrawnListener<T> listener) {
 		contentDrawnListenerList.add(listener);
 	}
 
+	/**
+	 * <p>
+	 * Gets the list of listeners that will be notified when the cell's content is drawn.
+	 * </p>
+	 *
+	 * @return A {@link List} of {@link CellContentDrawnListener} instances
+	 */
 	public List<CellContentDrawnListener<T>> getCellContentDrawnListeners() {
 		return contentDrawnListenerList;
 	}
 
+	/**
+	 * <p>
+	 * Notifies all registered listeners that the cell's content has been drawn.
+	 * </p>
+	 *
+	 * @param document The {@link PDDocument} in which the content was drawn
+	 * @param page The {@link PDPage} on which the content was drawn
+	 * @param rectangle The {@link PDRectangle} representing the area where the content was drawn
+	 */
 	public void notifyContentDrawnListeners(PDDocument document, PDPage page, PDRectangle rectangle) {
 		for(CellContentDrawnListener<T> listener : getCellContentDrawnListeners()) {
 			listener.onContentDrawn(this, document, page, rectangle);
 		}
 	}
 
+	/**
+	 * <p>
+	 * Gets the URL associated with this cell, if any.
+	 * </p>
+	 *
+	 * @return The {@link URL} associated with this cell, or {@code null} if no URL is set
+	 */
 	public URL getUrl() {
 		return url;
 	}
 
+	/**
+	 * <p>
+	 * Sets the URL to be associated with this cell, making it a clickable link.
+	 * </p>
+	 *
+	 * @param url The {@link URL} to associate with this cell
+	 */
 	public void setUrl(URL url) {
 		this.url = url;
 	}

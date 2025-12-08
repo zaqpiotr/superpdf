@@ -26,10 +26,20 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
 
 /**
- * Write CSV documents directly to PDF Tables
+ * Utility class for writing CSV documents directly to PDF Tables.
+ * <p>
+ * This class provides functionality to import CSV data into PDF tables with
+ * customizable cell styling and templates for headers and data rows.
+ * </p>
  */
 public class DataTable {
+	/**
+	 * Constant indicating that the CSV data includes a header row.
+	 */
 	public static final Boolean HASHEADER = true;
+	/**
+	 * Constant indicating that the CSV data does not include a header row.
+	 */
 	public static final Boolean NOHEADER = false;
 	private Table table;
 	private List<Float> colWidths;
@@ -73,15 +83,13 @@ public class DataTable {
 	}
 
 	/**
-	 * <p>
-	 * Create a CSVTable object to be able to add CSV document to a Table. A
-	 * page needs to be passed to the constructor so the Template Cells can be
-	 * created. The column widths can be given
-	 * </p>
+	 * Create a CSVTable object to be able to add CSV document to a Table.
+	 * A page needs to be passed to the constructor so the Template Cells can be
+	 * created. The column widths can be specified to control the table layout.
 	 *
 	 * @param table {@link Table}
 	 * @param page {@link PDPage}
-	 * @param colWidths column widths
+	 * @param colWidths list of column widths; if empty, widths are calculated automatically
 	 * @throws IOException If there is an error releasing resources
 	 */
 	public DataTable(Table table, PDPage page, List<Float> colWidths) throws IOException {
@@ -89,16 +97,14 @@ public class DataTable {
 	}
 	
 	/**
-	 * <p>
-	 * Create a CSVTable object to be able to add CSV document to a Table. A
-	 * page needs to be passed to the constructor so the Template Cells can be
-	 * created. The column widths can be given and an interface allows you to update the cell property 
-	 * </p>
+	 * Create a CSVTable object to be able to add CSV document to a Table.
+	 * A page needs to be passed to the constructor so the Template Cells can be
+	 * created. The column widths can be specified and an interface allows you to update cell properties.
 	 *
 	 * @param table {@link Table}
 	 * @param page {@link PDPage}
-	 * @param colWidths column widths
-	 * @param updateCellProperty {@link UpdateCellProperty}
+	 * @param colWidths list of column widths; if empty, widths are calculated automatically
+	 * @param updateCellProperty {@link UpdateCellProperty} callback for updating cell properties
 	 * @throws IOException If there is an error releasing resources
 	 */
 	public DataTable(Table table, PDPage page, List<Float> colWidths, UpdateCellProperty updateCellProperty) throws IOException {
@@ -213,7 +219,7 @@ public class DataTable {
 	 * Set the column widths
 	 * </p>
 	 *
-	 * @param colWidths
+	 * @param colWidths list of column widths to set
 	 */
 	public void setColWidths(List<Float> colWidths) {
 		this.colWidths = colWidths;
@@ -222,8 +228,8 @@ public class DataTable {
 	/**
 	 * <p>
 	 * Get the Cell Template that will be applied to header cells.
-	 * <p>
-	 * 
+	 * </p>
+	 *
 	 * @return header {@link Cell}'s template
 	 */
 	public Cell getHeaderCellTemplate() {

@@ -5,6 +5,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Stack;
 
+/**
+ * Utility class for tokenizing text into a stream of tokens.
+ *
+ * Tokenizer parses text containing HTML tags and special characters, converting them
+ * into Token objects. It handles text content, HTML tags (such as {@code <i>}, {@code <b>}, {@code <p>}, {@code <ul>}, {@code <ol>}, {@code <li>}, {@code <br>}),
+ * and identifies wrap points for text wrapping operations. The tokenizer also supports
+ * custom wrapping functions for more sophisticated line-breaking algorithms.
+ */
 public final class Tokenizer {
 
 	private static final Token OPEN_TAG_I = new Token(TokenType.OPEN_TAG, "i");
@@ -22,6 +30,10 @@ public final class Tokenizer {
 	private static final Token WRAP_POINT_LI = new Token(TokenType.WRAP_POINT, "li");
 	private static final Token WRAP_POINT_BR = new Token(TokenType.WRAP_POINT, "br");
 
+	/**
+	 * Private constructor to prevent instantiation.
+	 * This is a utility class with only static methods.
+	 */
 	private Tokenizer() {
 	}
 
@@ -65,6 +77,19 @@ public final class Tokenizer {
 		return possibleWrapPoints;
 	}
 
+	/**
+	 * Tokenizes the given text into a list of tokens.
+	 *
+	 * This method parses the input text and produces tokens for text content, HTML tags,
+	 * and wrap points. It optionally uses a custom wrapping function to identify line breaks.
+	 * If no wrapping function is provided, wrap points are identified at standard break characters
+	 * (spaces, punctuation, whitespace, etc.).
+	 *
+	 * @param text the text to tokenize (may be null)
+	 * @param wrappingFunction optional custom wrapping function for identifying line breaks;
+	 *                         if null, default wrap points are used
+	 * @return a list of tokens representing the parsed text, or an empty list if text is null
+	 */
 	public static List<Token> tokenize(final String text, final WrappingFunction wrappingFunction) {
 		final List<Token> tokens = new ArrayList<>();
 		if (text != null) {

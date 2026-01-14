@@ -13,8 +13,7 @@ java {
     targetCompatibility = JavaVersion.VERSION_23
 }
 
-group = 'io.github.zaqpiotr'
-
+group = 'com.monitglass'
 /*
  * Gets the version name from the latest Git tag
  */

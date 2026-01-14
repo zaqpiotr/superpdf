@@ -50,14 +50,6 @@ mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
 
-    signing {
-        // Użycie GPG klucza z sekretów w workflow
-        useInMemoryPgpKeys(
-                System.getenv("GPG_PRIVATE_KEY"),
-                System.getenv("GPG_PASSPHRASE")
-        )
-    }
-
     pom {
         name = 'SuperPDF'
         description = 'A Java library to build tables in PDF documents'

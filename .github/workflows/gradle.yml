@@ -16,7 +16,6 @@ jobs:
         with:
           java-version: '23'
           distribution: 'temurin'
-          # konfiguracja GPG i Maven do publikacji
           server-id: ossrh
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
@@ -27,7 +26,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Import GPG key
+      - name: Import GPG key (for Gradle signing)
         run: |
           echo "${{ secrets.GPG_PRIVATE_KEY }}" | gpg --batch --import
 

@@ -8,6 +8,9 @@ wrapper {
     gradleVersion = '8.10.2'
 }
 
+version = '1.0.8'
+group = 'io.github.zaqpiotr'
+
 java {
     sourceCompatibility = JavaVersion.VERSION_23
     targetCompatibility = JavaVersion.VERSION_23

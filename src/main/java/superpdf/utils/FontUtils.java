@@ -228,4 +228,21 @@ public final class FontUtils {
 		defaultFonts.put("fontItalic", loadFont(document, "fonts/Lato-Italic.ttf"));
 		defaultFonts.put("fontBoldItalic", loadFont(document, "fonts/Lato-BoldItalic.ttf"));
 	}
+
+	/**
+	 * Sets Noto Sans fonts as the default fonts with full Unicode support.
+	 * <p>
+	 * This method loads the Noto Sans font family (Regular, Bold, Italic, and BoldItalic)
+	 * which includes comprehensive language support including Hungarian, Polish, and other
+	 * Central European characters with double acute accents (ő, ű, Ő, Ű).
+	 * </p>
+	 *
+	 * @param document the {@link PDDocument} in which the fonts will be embedded
+	 */
+	public static void setNotoSansFontsAsDefault(PDDocument document) {
+		defaultFonts.put("font", loadFont(document, "fonts/NotoSans-Regular.ttf"));
+		defaultFonts.put("fontBold", loadFont(document, "fonts/NotoSans-Bold.ttf"));
+		defaultFonts.put("fontItalic", loadFont(document, "fonts/NotoSans-Italic.ttf"));
+		defaultFonts.put("fontBoldItalic", loadFont(document, "fonts/NotoSans-BoldItalic.ttf"));
+	}
 }

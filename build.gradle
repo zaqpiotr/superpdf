@@ -8,28 +8,24 @@ wrapper {
     gradleVersion = '8.10.2'
 }
 
-version = '1.0.8'
-group = 'io.github.zaqpiotr'
-
 java {
     sourceCompatibility = JavaVersion.VERSION_23
     targetCompatibility = JavaVersion.VERSION_23
 }
 
+group = 'io.github.zaqpiotr'
+
 /*
  * Gets the version name from the latest Git tag
  */
-
 def getVersionName() {
     def proc = ['git', 'describe', '--tags'].execute()
     proc.waitFor()
     def result = proc.text.trim()
-    // Remove 'v' prefix if present
     return result.startsWith('v') ? result.substring(1) : result
 }
 
 version = getVersionName()
-group = 'io.github.zaqpiotr'
 
 repositories {
     mavenCentral()
@@ -41,10 +37,8 @@ dependencies {
     implementation 'org.apache.commons:commons-csv:1.9.0'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
 
-    // Spock Framework with Groovy 5 for Java 23 support
     testImplementation 'org.spockframework:spock-core:2.4-M7-groovy-5.0'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
     testImplementation 'commons-io:commons-io:2.11.0'
 }
 
@@ -55,6 +49,14 @@ test {
 mavenPublishing {
     publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
     signAllPublications()
+
+    signing {
+        // Użycie GPG klucza z sekretów w workflow
+        useInMemoryPgpKeys(
+                System.getenv("GPG_PRIVATE_KEY"),
+                System.getenv("GPG_PASSPHRASE")
+        )
+    }
 
     pom {
         name = 'SuperPDF'
@@ -72,7 +74,8 @@ mavenPublishing {
         developers {
             developer {
                 id = 'zaqpiotr'
-                name = 'Piotr'
+                name = 'Piotr Zak'
+                email = 'zaqpiotr@gmail.com'
                 url = 'https://github.com/zaqpiotr'
             }
         }

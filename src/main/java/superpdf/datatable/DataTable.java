@@ -119,7 +119,7 @@ public class DataTable {
 		ddoc.addPage(dpage);
 		// Initialize FontUtils with Lato fonts if not already initialized
 		if (FontUtils.getDefaultfonts().isEmpty()) {
-			FontUtils.setLatoFontsAsDefault(ddoc);
+			FontUtils.setNotoSansFontsAsDefault(ddoc);
 		}
 		BaseTable dummyTable = new BaseTable(10f, 10f, 10f, table.getWidth(), 10f, ddoc, dpage, false, false);
 		Row dr = dummyTable.createRow(0f);

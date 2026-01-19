@@ -1,21 +1,18 @@
 package superpdf.utils;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType0Font;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Utility methods for fonts.
  */
 public final class FontUtils {
-
-	private final static Logger logger = LoggerFactory.getLogger(FontUtils.class);
 
 	private static final class FontMetrics {
 		private final float ascent;
@@ -49,19 +46,23 @@ public final class FontUtils {
 	 * Loads the {@link PDType0Font} to be embedded in the specified
 	 * {@link PDDocument}.
 	 * </p>
-	 * 
+	 *
 	 * @param document
 	 *            {@link PDDocument} where fonts will be loaded
 	 * @param fontPath
 	 *            font path which will be loaded
 	 * @return The read {@link PDType0Font}
+	 * @throws IllegalStateException if the font cannot be found or loaded
 	 */
-	public static final PDType0Font loadFont(PDDocument document, String fontPath) {
-		try {
-			return PDType0Font.load(document, FontUtils.class.getClassLoader().getResourceAsStream(fontPath));
+	public static PDType0Font loadFont(PDDocument document, String fontPath) {
+		InputStream fontStream = FontUtils.class.getClassLoader().getResourceAsStream(fontPath);
+		if (fontStream == null) {
+			throw new IllegalStateException("Font not found in classpath: " + fontPath);
+		}
+		try (fontStream) {
+			return PDType0Font.load(document, fontStream);
 		} catch (IOException e) {
-			logger.warn("Cannot load given external font", e);
-			return null;
+			throw new IllegalStateException("Failed to load font: " + fontPath, e);
 		}
 	}
 
@@ -152,39 +153,15 @@ public final class FontUtils {
 	 * <p>
 	 * Create basic {@link FontMetrics} for current font.
 	 * <p>
-	 * 
+	 *
 	 * @param font
-	 *            The font from which calculation will be applied <<<<<<< HEAD
-	 * @throws IOException
-	 *             If reading the font file fails ======= >>>>>>> using FreeSans
-	 *             as default font and added new free fonts
+	 *            The font from which calculation will be applied
 	 */
 	private static void createFontMetrics(final PDFont font) {
 		final float base = font.getFontDescriptor().getXHeight() / 1000;
 		final float ascent = font.getFontDescriptor().getAscent() / 1000 - base;
 		final float descent = font.getFontDescriptor().getDescent() / 1000;
 		fontMetrics.put(font.getName(), new FontMetrics(base + ascent - descent, ascent, descent));
-	}
-
-	/**
-	 * Adds default fonts to be used throughout the document generation.
-	 * <p>
-	 * These fonts will be used as fallback fonts for text rendering when no specific
-	 * font is provided. The fonts are stored in a map with keys: "font", "fontBold",
-	 * "fontItalic", and "fontBoldItalic".
-	 * </p>
-	 *
-	 * @param font the regular (normal) font
-	 * @param fontBold the bold variant font
-	 * @param fontItalic the italic variant font
-	 * @param fontBoldItalic the bold and italic variant font
-	 */
-	public static void addDefaultFonts(final PDFont font, final PDFont fontBold, final PDFont fontItalic,
-			final PDFont fontBoldItalic) {
-		defaultFonts.put("font", font);
-		defaultFonts.put("fontBold", fontBold);
-		defaultFonts.put("fontItalic", fontItalic);
-		defaultFonts.put("fontBoldItalic", fontBoldItalic);
 	}
 
 	/**
@@ -195,38 +172,6 @@ public final class FontUtils {
 	 */
 	public static Map<String, PDFont> getDefaultfonts() {
 		return defaultFonts;
-	}
-
-	/**
-	 * Sets FreeSans fonts as the default fonts to be used throughout the document generation.
-	 * <p>
-	 * This method loads the FreeSans font family (Regular, Bold, Oblique, and BoldOblique)
-	 * from the classpath and sets them as the default fonts.
-	 * </p>
-	 *
-	 * @param document the {@link PDDocument} in which the fonts will be embedded
-	 */
-	public static void setSansFontsAsDefault(PDDocument document) {
-		defaultFonts.put("font", loadFont(document, "fonts/FreeSans.ttf"));
-		defaultFonts.put("fontBold", loadFont(document, "fonts/FreeSansBold.ttf"));
-		defaultFonts.put("fontItalic", loadFont(document, "fonts/FreeSansOblique.ttf"));
-		defaultFonts.put("fontBoldItalic", loadFont(document, "fonts/FreeSansBoldOblique.ttf"));
-	}
-
-	/**
-	 * Sets Lato fonts as the default fonts to be used throughout the document generation.
-	 * <p>
-	 * This method loads the Lato font family (Regular, Bold, Italic, and BoldItalic)
-	 * from the classpath and sets them as the default fonts.
-	 * </p>
-	 *
-	 * @param document the {@link PDDocument} in which the fonts will be embedded
-	 */
-	public static void setLatoFontsAsDefault(PDDocument document) {
-		defaultFonts.put("font", loadFont(document, "fonts/Lato-Regular.ttf"));
-		defaultFonts.put("fontBold", loadFont(document, "fonts/Lato-Bold.ttf"));
-		defaultFonts.put("fontItalic", loadFont(document, "fonts/Lato-Italic.ttf"));
-		defaultFonts.put("fontBoldItalic", loadFont(document, "fonts/Lato-BoldItalic.ttf"));
 	}
 
 	/**

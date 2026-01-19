@@ -122,24 +122,72 @@ LineStyle custom = LineStyle.produceDashed(Color.GRAY, 1, new float[]{3.0f, 2.0f
 cell.setBottomBorderStyle(dashed);
 ```
 
-### Custom Fonts with HTML Support
+### Built-in Noto Sans Fonts
+
+SuperPDF includes Google's **Noto Sans** font family with full Unicode support. The name "Noto" comes from "No Tofu" - referring to the blank boxes (□) that appear when a font doesn't support a character.
 
 ```java
-import static superpdf.utils.FontUtils.addDefaultFonts;
-import org.apache.pdfbox.pdmodel.font.PDType0Font;
+import static superpdf.utils.FontUtils.setNotoSansFontsAsDefault;
+import static superpdf.utils.FontUtils.getDefaultfonts;
+import superpdf.utils.FontScript;
 
-// Load custom fonts
-PDType0Font font = PDType0Font.load(document, new FileInputStream("fonts/Regular.ttf"));
-PDType0Font fontBold = PDType0Font.load(document, new FileInputStream("fonts/Bold.ttf"));
-PDType0Font fontItalic = PDType0Font.load(document, new FileInputStream("fonts/Italic.ttf"));
-PDType0Font fontBoldItalic = PDType0Font.load(document, new FileInputStream("fonts/BoldItalic.ttf"));
+// Use Latin/Greek/Cyrillic fonts (default)
+setNotoSansFontsAsDefault(document, FontScript.LATIN);
 
-// Register fonts for HTML tag support (<b>, <i>)
-addDefaultFonts(font, fontBold, fontItalic, fontBoldItalic);
+// Or use Arabic script
+setNotoSansFontsAsDefault(document, FontScript.ARABIC);
+
+// Or use Hebrew script
+setNotoSansFontsAsDefault(document, FontScript.HEBREW);
+
+// Get the loaded fonts for cell styling
+var fonts = getDefaultfonts();
+cell.setFont(fonts.get("font"));        // Regular
+cell.setFont(fonts.get("fontBold"));    // Bold
+cell.setFont(fonts.get("fontItalic"));  // Italic
+```
+
+#### Available Font Scripts
+
+| Script | Languages Supported | Italic Support |
+|--------|---------------------|----------------|
+| `FontScript.LATIN` | Latin, Greek, Cyrillic (Western/Eastern European, Russian) | Yes |
+| `FontScript.ARABIC` | Arabic, Persian, Urdu | No* |
+| `FontScript.HEBREW` | Hebrew, Yiddish | No* |
+
+*Arabic and Hebrew scripts do not traditionally use italic styles in typography. When italic is requested, the regular font variant is used instead.
+
+#### Extending with Additional Scripts
+
+The Noto project covers virtually every Unicode character. Additional fonts can be downloaded from:
+- [Google Fonts - Noto](https://fonts.google.com/noto)
+- [GitHub - noto-fonts](https://github.com/googlefonts/noto-fonts)
+
+Available Noto Sans variants include:
+- **Noto Sans CJK** - Chinese, Japanese, Korean
+- **Noto Sans Devanagari** - Hindi, Sanskrit, Marathi, Nepali
+- **Noto Sans Thai** - Thai
+- **Noto Sans Bengali** - Bengali, Assamese
+- **Noto Sans Tamil** - Tamil
+- And many more...
+
+To add a new script, download the TTF files, add them to the `fonts/` resources directory, and add a new enum constant to `FontScript`.
+
+### HTML Support in Cells
+
+Once fonts are loaded, you can use HTML tags in cell content:
+
+```java
+// Load fonts first
+setNotoSansFontsAsDefault(document, FontScript.LATIN);
 
 // Now you can use HTML in cells
 cell.setText("This is <b>bold</b> and <i>italic</i> text");
+cell.setText("Line 1<br>Line 2");
+cell.setText("<ul><li>Item 1</li><li>Item 2</li></ul>");
 ```
+
+Supported HTML tags: `<b>`, `<i>`, `<br>`, `<ul>`, `<ol>`, `<li>`
 
 ### Images in Cells
 

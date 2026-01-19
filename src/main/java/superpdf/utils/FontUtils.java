@@ -181,13 +181,35 @@ public final class FontUtils {
 	 * which includes comprehensive language support including Hungarian, Polish, and other
 	 * Central European characters with double acute accents (ő, ű, Ő, Ű).
 	 * </p>
+	 * <p>
+	 * Uses {@link FontScript#LATIN} (Latin, Greek, Cyrillic) by default.
+	 * For Arabic or Hebrew scripts, use {@link #setNotoSansFontsAsDefault(PDDocument, FontScript)}.
+	 * </p>
 	 *
 	 * @param document the {@link PDDocument} in which the fonts will be embedded
 	 */
 	public static void setNotoSansFontsAsDefault(PDDocument document) {
-		defaultFonts.put("font", loadFont(document, "fonts/NotoSans-Regular.ttf"));
-		defaultFonts.put("fontBold", loadFont(document, "fonts/NotoSans-Bold.ttf"));
-		defaultFonts.put("fontItalic", loadFont(document, "fonts/NotoSans-Italic.ttf"));
-		defaultFonts.put("fontBoldItalic", loadFont(document, "fonts/NotoSans-BoldItalic.ttf"));
+		setNotoSansFontsAsDefault(document, FontScript.LATIN);
+	}
+
+	/**
+	 * Sets Noto Sans fonts as the default fonts for the specified script.
+	 * <p>
+	 * Available scripts:
+	 * <ul>
+	 *   <li>{@link FontScript#LATIN} - Latin, Greek, Cyrillic (Western/Eastern European, Russian)</li>
+	 *   <li>{@link FontScript#ARABIC} - Arabic, Persian, Urdu</li>
+	 *   <li>{@link FontScript#HEBREW} - Hebrew, Yiddish</li>
+	 * </ul>
+	 * </p>
+	 *
+	 * @param document the {@link PDDocument} in which the fonts will be embedded
+	 * @param script the {@link FontScript} to use for font selection
+	 */
+	public static void setNotoSansFontsAsDefault(PDDocument document, FontScript script) {
+		defaultFonts.put("font", loadFont(document, script.getRegularPath()));
+		defaultFonts.put("fontBold", loadFont(document, script.getBoldPath()));
+		defaultFonts.put("fontItalic", loadFont(document, script.getItalicPath()));
+		defaultFonts.put("fontBoldItalic", loadFont(document, script.getBoldItalicPath()));
 	}
 }

@@ -422,6 +422,72 @@ public class Cell<T extends PDPage> {
 
 	/**
 	 * <p>
+	 * Adjusts the font size to fit the text within the specified row height.
+	 * </p>
+	 * <p>
+	 * Uses binary search to find the optimal font size that allows the text
+	 * to fit within the available height (row height minus padding and borders).
+	 * The minimum font size is 1pt.
+	 * </p>
+	 *
+	 * @param rowHeight the row height to fit the text into
+	 */
+	void fitFontSizeToHeight(float rowHeight) {
+		if (isTextRotated() || text == null || text.isEmpty()) {
+			return;
+		}
+
+		float availableHeight = rowHeight - getTopPadding() - getBottomPadding()
+				- (topBorderStyle == null ? 0 : topBorderStyle.getWidth())
+				- (bottomBorderStyle == null ? 0 : bottomBorderStyle.getWidth());
+
+		if (availableHeight <= 0) {
+			return;
+		}
+
+		float requiredHeight = getRequiredTextHeight();
+		if (requiredHeight <= availableHeight) {
+			return;
+		}
+
+		// Binary search for optimal font size
+		float minFontSize = 1f;
+		float maxFontSize = fontSize;
+		float originalFontSize = fontSize;
+
+		for (int i = 0; i < 10; i++) {
+			float midFontSize = (minFontSize + maxFontSize) / 2;
+			setFontSize(midFontSize);
+
+			requiredHeight = getRequiredTextHeight();
+			if (requiredHeight <= availableHeight) {
+				minFontSize = midFontSize;
+			} else {
+				maxFontSize = midFontSize;
+			}
+		}
+
+		// Use the smaller font size to ensure it fits
+		if (getRequiredTextHeight() > availableHeight) {
+			setFontSize(minFontSize);
+		}
+	}
+
+	/**
+	 * <p>
+	 * Gets the required text height including font descent.
+	 * </p>
+	 *
+	 * @return the required height for rendering the text
+	 */
+	private float getRequiredTextHeight() {
+		float paragraphHeight = getParagraph().getHeight();
+		float descent = FontUtils.getDescent(getFont(), getFontSize());
+		return paragraphHeight + Math.abs(descent);
+	}
+
+	/**
+	 * <p>
 	 * Gets {@link Paragraph}'s width
 	 * </p>
 	 *

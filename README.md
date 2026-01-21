@@ -7,15 +7,15 @@ A Java library to build tables in PDF documents using Apache PDFBox.
 ### Maven Central (after sync)
 ```xml
 <dependency>
-    <groupId>io.github.zaqpiotr</groupId>
+    <groupId>com.monitglass</groupId>
     <artifactId>superpdf</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.2</version>
 </dependency>
 ```
 
 ### Gradle
 ```groovy
-implementation 'io.github.zaqpiotr:superpdf:1.0.0'
+implementation 'com.monitglass:superpdf:1.1.2'
 ```
 
 ## Features

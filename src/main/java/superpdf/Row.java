@@ -28,6 +28,7 @@ public class Row<T extends PDPage> {
 	private boolean headerRow = false;
 	float height;
 	private float lineSpacing = 1;
+	private boolean fixedHeight = false;
 
 	Row(Table<T> table, List<Cell<T>> cells, float height) {
 		this.table = table;
@@ -226,10 +227,18 @@ public class Row<T extends PDPage> {
 	 * <p>
 	 * Gets maximal height of the cells in current row therefore row's height.
 	 * </p>
+	 * <p>
+	 * If {@link #isFixedHeight()} is true, returns the configured height without
+	 * adjusting based on cell content. Otherwise, adjusts the height to accommodate
+	 * the tallest cell.
+	 * </p>
 	 *
 	 * @return Row's height
 	 */
 	public float getHeight() {
+		if (fixedHeight) {
+			return height;
+		}
 		float maxheight = 0.0f;
 		for (Cell<T> cell : this.cells) {
 			float cellHeight = cell.getCellHeight();
@@ -403,5 +412,54 @@ public class Row<T extends PDPage> {
 	 */
 	public void setLineSpacing(float lineSpacing) {
 		this.lineSpacing = lineSpacing;
+	}
+
+	/**
+	 * <p>
+	 * Checks whether this row has a fixed height.
+	 * </p>
+	 * <p>
+	 * When fixed height is enabled, the row height remains constant and
+	 * text content will be shrunk to fit within the available space.
+	 * </p>
+	 *
+	 * @return {@code true} if this row has a fixed height, {@code false} otherwise
+	 */
+	public boolean isFixedHeight() {
+		return fixedHeight;
+	}
+
+	/**
+	 * <p>
+	 * Sets whether this row should have a fixed height.
+	 * </p>
+	 * <p>
+	 * When set to {@code true}, the row height will not expand to accommodate
+	 * content that exceeds the configured height. Instead, text content will be
+	 * automatically shrunk to fit within the available space.
+	 * </p>
+	 *
+	 * @param fixedHeight {@code true} to enable fixed height mode, {@code false} otherwise
+	 */
+	public void setFixedHeight(boolean fixedHeight) {
+		this.fixedHeight = fixedHeight;
+	}
+
+	/**
+	 * <p>
+	 * Fits the text content of all cells to the row height by adjusting font sizes.
+	 * </p>
+	 * <p>
+	 * This method is called automatically when fixed height is enabled and ensures
+	 * that text content is scaled down if necessary to fit within the row.
+	 * </p>
+	 */
+	void fitTextToHeight() {
+		if (!fixedHeight) {
+			return;
+		}
+		for (Cell<T> cell : cells) {
+			cell.fitFontSizeToHeight(height);
+		}
 	}
 }

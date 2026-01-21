@@ -7,15 +7,15 @@ A Java library to build tables in PDF documents using Apache PDFBox.
 ### Maven Central (after sync)
 ```xml
 <dependency>
-    <groupId>io.github.zaqpiotr</groupId>
+    <groupId>com.monitglass</groupId>
     <artifactId>superpdf</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.1</version>
 </dependency>
 ```
 
 ### Gradle
 ```groovy
-implementation 'io.github.zaqpiotr:superpdf:1.0.0'
+implementation 'com.monitglass:superpdf:1.1.1'
 ```
 
 ## Features
@@ -29,6 +29,7 @@ implementation 'io.github.zaqpiotr:superpdf:1.0.0'
 - Line styles (solid, dashed, dotted)
 - Custom fonts support
 - Rotated text (90 degrees)
+- Fixed height rows with auto-shrinking text
 
 ## Quick Start
 
@@ -121,6 +122,26 @@ LineStyle custom = LineStyle.produceDashed(Color.GRAY, 1, new float[]{3.0f, 2.0f
 
 cell.setBottomBorderStyle(dashed);
 ```
+
+### Fixed Height Rows
+
+By default, rows expand to fit their content. Use `setFixedHeight(true)` to keep row height fixed - text will automatically shrink to fit.
+
+```java
+// Create a row with fixed height of 20 points
+Row<PDPage> row = table.createRow(20f);
+row.setFixedHeight(true);
+
+// Even with lots of text, the row stays at 20pt
+// The font size is automatically reduced to fit
+row.createCell(50, "This is a very long text that would normally make the row taller, but with fixed height enabled, the text shrinks to fit within the 20pt row height.");
+row.createCell(50, "Short text");
+```
+
+This is useful for:
+- Creating uniform table layouts with consistent row heights
+- Fitting content into a specific space
+- Label-style tables where row height must not vary
 
 ### Built-in Noto Sans Fonts
 

@@ -301,6 +301,9 @@ public abstract class Table<T extends PDPage> {
     }
 
     private void drawRow(Row<T> row) throws IOException {
+        // Fit text to height if fixed height is enabled
+        row.fitTextToHeight();
+
         // row.getHeight is currently an extremely expensive function so get the value
         // once during drawing and reuse it, since it will not change during drawing
         float rowHeight = row.getHeight();
